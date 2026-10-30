@@ -1,3 +1,7 @@
+Practical 1: Data Cleaning – Missing Values
+Code
+The current file has no missing values, so the cleaning steps will leave its values unchanged. The code is still ready to handle missing values if they are present in a later copy.
+
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
@@ -12,7 +16,7 @@ print(df.isnull().sum())
 df["school"] = df["school"].fillna(df["school"].mode()[0])
 df["sex"] = df["sex"].fillna(df["sex"].mode()[0])
 for col in ["age", "Medu", "Fedu"]:
-    df[col] = df[col].fillna(df[col].median())
+df[col] = df[col].fillna(df[col].median())
 
 print("\nCleaned Data:")
 print(df.head())
@@ -31,6 +35,677 @@ print("\nStatistics:")
 print(df[["age", "Medu", "Fedu"]].describe())
 
 df_clean = df.dropna()
+
+--------------------------------------------------------------------------
+
+Practical 2: Data Cleaning – Noisy Data
+Code
+There is no Date, Price, Quantity, Discount, or Sales_Region field in this CSV. This practical therefore checks outliers in age/parent-education codes and validates the available category fields instead.
+
+    
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+df.columns = df.columns.str.strip()
+
+print("Original Data:")
+print(df.head())
+
+def remove_outliers(col):
+    q1 = col.quantile(0.25)
+    q3 = col.quantile(0.75)
+    iqr = q3 - q1
+    lower = q1 - 1.5 * iqr
+    upper = q3 + 1.5 * iqr
+    return col.where((col >= lower) & (col <= upper))
+
+for col in ["age", "Medu", "Fedu"]:
+    df[col] = pd.to_numeric(df[col], errors="coerce")
+    df[col] = remove_outliers(df[col])
+    df[col] = df[col].fillna(df[col].median())
+
+valid_school = ["GP", "MS"]
+valid_sex = ["F", "M"]
+df["school"] = df["school"].where(df["school"].isin(valid_school))
+df["sex"] = df["sex"].where(df["sex"].isin(valid_sex))
+df = df.dropna(subset=["school", "sex"])
+
+print("\nMissing Values After Cleaning:")
+print(df.isnull().sum())
+
+df.to_csv("student_columns_noisy_cleaned.csv", index=False)
+
+plt.boxplot(df["age"])
+plt.title("Age After Cleaning")
+plt.ylabel("Age")
+plt.show()
+
+print("\nCleaning Complete!")
+print(df.head())
+
+
+----------------------------------------------------------------------------
+
+Practical 3: Data Preprocessing
+
+Practical 3A – Correlation and Heatmap
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+num_df = df.select_dtypes(include="number")
+corr = num_df.corr()
+
+print("Correlation Matrix:")
+print(corr)
+
+sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Student Dataset Correlation Heatmap")
+plt.show()
+
+
+-------------------------------------------------------------------
+
+Practical 3B – Chi-Square Test
+The original gender-versus-education_level example is changed to sex-versus-school because these are the categorical columns available in this CSV.
+
+
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+df = pd.read_csv("student-columns.csv")
+table = pd.crosstab(df["sex"], df["school"])
+
+print("Contingency Table:")
+print(table)
+
+chi2, p, dof, expected = chi2_contingency(table)
+print("\nChi-Square:", chi2)
+print("Degrees of Freedom:", dof)
+print("P-Value:", p)
+
+if p < 0.05:
+    print("Variables are dependent")
+else:
+    print("Variables are independent")
+Practical 4: Exploratory Data Analysis
+
+
+-------------------------------------------------------------------------
+
+4A – Mean, Median, Mode and Skewness
+
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv("student-columns.csv")
+for col in df.select_dtypes(include=np.number):
+    print("\n", col)
+    print("Mean:", df[col].mean())
+    print("Median:", df[col].median())
+    print("Mode:", df[col].mode()[0])
+    print("Skew:", round(df[col].skew(), 2))
+
+
+------------------------------------------------------------------------
+
+4B – Bar Plot and Stacked Bar Plot
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+df["sex"].value_counts().plot(kind="bar")
+plt.title("Student Distribution by Sex")
+plt.xlabel("Sex")
+plt.ylabel("Count")
+plt.show()
+
+pd.crosstab(df["school"], df["sex"]).plot(kind="bar", stacked=True)
+plt.title("School vs Sex")
+plt.xlabel("School")
+plt.ylabel("Count")
+plt.show()
+
+
+-------------------------------------------------------------------------------
+
+4C – Pie Chart and Donut Chart
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+counts = df["Mjob"].value_counts()
+
+plt.pie(counts.values, labels=counts.index, autopct="%1.1f%%", startangle=90)
+plt.title("Mother's Job Distribution")
+plt.show()
+
+plt.pie(counts.values, labels=counts.index, autopct="%1.1f%%",
+        startangle=90, wedgeprops={"width": 0.4})
+plt.title("Mother's Job Donut Chart")
+plt.show()
+
+
+----------------------------------------------------------------------------------
+
+4D – Histogram
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+plt.hist(df["age"], bins=8, edgecolor="black")
+plt.xlabel("Age")
+plt.ylabel("Number of Students")
+plt.title("Student Age Distribution")
+plt.show()
+
+
+-----------------------------------------------------------------------
+
+4E – Scatter Plot
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+plt.figure(figsize=(7, 5))
+plt.scatter(df["Medu"], df["Fedu"])
+plt.xlabel("Mother's Education Code")
+plt.ylabel("Father's Education Code")
+plt.title("Mother's vs Father's Education")
+print("Correlation =", round(df["Medu"].corr(df["Fedu"]), 2))
+plt.show()
+
+
+-----------------------------------------------------------------------
+
+4F – Correlation Heatmap
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+cols = ["age", "Medu", "Fedu"]
+sns.heatmap(df[cols].corr(), annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Correlation Heatmap")
+plt.show()
+
+
+-------------------------------------------------------------------------
+
+4G – Violin Plot
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+plt.figure(figsize=(8, 5))
+sns.violinplot(data=df, x="sex", y="age", hue="sex",
+               palette="Set2", inner="quartile", cut=0, legend=False)
+plt.title("Age Distribution by Sex")
+plt.xlabel("Sex")
+plt.ylabel("Age")
+plt.show()
+
+
+---------------------------------------------------------------------------
+
+4H – Box Plot
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+plt.figure(figsize=(8, 5))
+sns.boxplot(data=df, x="school", y="age", hue="school",
+            palette="Set2", legend=False)
+plt.title("Age Distribution Across Schools")
+plt.xlabel("School")
+plt.ylabel("Age")
+plt.tight_layout()
+plt.show()
+
+
+-------------------------------------------------------------
+
+4I – Line Chart
+This is a line chart of counts by age category; it is not a time-series chart.
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+age_count = df["age"].value_counts().sort_index()
+plt.plot(age_count.index, age_count.values, marker="o")
+plt.title("Number of Students by Age")
+plt.xlabel("Age")
+plt.ylabel("Number of Students")
+plt.grid(True)
+plt.show()
+
+
+-------------------------------------------------------------------------
+
+4J – Swarm Plot
+A sample of up to 150 rows is used so that the swarm plot remains readable.
+
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+plt.figure(figsize=(8, 5))
+sns.swarmplot(data=df.sample(min(150, len(df)), random_state=42),
+              x="sex", y="age", hue="sex", palette="Set2", legend=False)
+plt.title("Student Age Swarm Plot by Sex")
+plt.xlabel("Sex")
+plt.ylabel("Age")
+plt.show()
+
+
+-----------------------------------------------------------------------------------
+
+4K – 3D Scatter Plot
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("student-columns.csv")
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(111, projection="3d")
+ax.scatter(df["age"], df["Medu"], df["Fedu"])
+ax.set_xlabel("Age")
+ax.set_ylabel("Mother's Education")
+ax.set_zlabel("Father's Education")
+ax.set_title("3D Scatter Plot of Student Data")
+plt.show()
+
+
+---------------------------------------------------------------
+
+Practical 5: Classification – Decision Tree
+Code
+The original Spotify popularity target does not exist in this dataset. This version predicts the available binary column sex using age, Medu and Fedu. It is a demonstration classifier, not a claim that these variables meaningfully determine sex.
+
+    
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import (accuracy_score, confusion_matrix,
+                             precision_score, recall_score,
+                             roc_curve, auc)
+
+df = pd.read_csv("student-columns.csv")
+X = df[["age", "Medu", "Fedu"]]
+y = df["sex"].map({"F": 0, "M": 1})
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = DecisionTreeClassifier(max_depth=3, random_state=42)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)[:, 1]
+
+accuracy = accuracy_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+precision = precision_score(y_test, y_pred, zero_division=0)
+sensitivity = recall_score(y_test, y_pred, zero_division=0)
+
+TN, FP, FN, TP = cm.ravel()
+specificity = TN / (TN + FP) if TN + FP else 0
+standard_error = np.sqrt(accuracy * (1 - accuracy) / len(y_test))
+fpr, tpr, _ = roc_curve(y_test, y_prob)
+roc_auc = auc(fpr, tpr)
+
+print("Predictions:", y_pred)
+print("Accuracy:", accuracy)
+print("Confusion Matrix:\n", cm)
+print("Standard Error:", standard_error)
+print("Precision:", precision)
+print("Sensitivity:", sensitivity)
+print("Specificity:", specificity)
+print("AUC:", roc_auc)
+
+plt.plot(fpr, tpr, label="ROC Curve (AUC = %.2f)" % roc_auc)
+plt.plot([0, 1], [0, 1], "--")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve – Decision Tree")
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(10, 6))
+plot_tree(model, feature_names=["Age", "Medu", "Fedu"],
+          class_names=["F", "M"], filled=True, rounded=True)
+plt.title("Student Sex Decision Tree")
+plt.show()
+
+
+---------------------------------------------------------------------
+
+
+Practical 6: Comparing Algorithms – Gaussian Naive Bayes
+Code
+The target is school (GP/MS), which has two classes. The code uses a stratified split so both school labels are represented in train and test sets.
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import (accuracy_score, confusion_matrix,
+                             precision_score, recall_score,
+                             roc_curve, auc)
+
+df = pd.read_csv("student-columns.csv")
+X = df[["age", "Medu", "Fedu"]]
+y = LabelEncoder().fit_transform(df["school"])
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+model = GaussianNB()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average="weighted", zero_division=0)
+recall = recall_score(y_test, y_pred, average="weighted", zero_division=0)
+se = np.sqrt(accuracy * (1 - accuracy) / len(y_test))
+
+TN, FP, FN, TP = cm.ravel()
+specificity = TN / (TN + FP) if TN + FP else 0
+
+fpr, tpr, _ = roc_curve(y_test, y_prob[:, 1])
+roc_auc = auc(fpr, tpr)
+
+print("Predictions:", y_pred)
+print("Accuracy:", accuracy)
+print("Confusion Matrix:\n", cm)
+print("Standard Error:", se)
+print("Precision:", precision)
+print("Sensitivity:", recall)
+print("Specificity:", specificity)
+print("AUC:", roc_auc)
+
+plt.plot(fpr, tpr, label="AUC = %.2f" % roc_auc)
+plt.plot([0, 1], [0, 1], "--")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve – Gaussian Naive Bayes")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+--------------------------------------------------------------------------
+
+Practical 7: Clustering – K-Means and Hierarchical
+Code
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+df = pd.read_csv("student-columns.csv")
+X = df[["age", "Medu", "Fedu"]].dropna()
+X_scaled = StandardScaler().fit_transform(X)
+
+wss = []
+for k in range(1, 11):
+    model = KMeans(n_clusters=k, n_init=10, random_state=42)
+    model.fit(X_scaled)
+    wss.append(model.inertia_)
+
+plt.plot(range(1, 11), wss, marker="o")
+plt.title("Elbow Method")
+plt.xlabel("Number of Clusters")
+plt.ylabel("WSS")
+plt.show()
+
+kmeans = KMeans(n_clusters=3, n_init=10, random_state=42)
+k_labels = kmeans.fit_predict(X_scaled)
+print("K-Means Silhouette Score:", silhouette_score(X_scaled, k_labels))
+
+pca = PCA(n_components=2)
+P = pca.fit_transform(X_scaled)
+plt.scatter(P[:, 0], P[:, 1], c=k_labels, cmap="viridis")
+plt.title("K-Means Clustering")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.show()
+
+dendrogram(linkage(X_scaled, method="ward"), truncate_mode="lastp", p=30)
+plt.title("Hierarchical Dendrogram")
+plt.show()
+
+h_model = AgglomerativeClustering(n_clusters=3)
+h_labels = h_model.fit_predict(X_scaled)
+print("Hierarchical Silhouette Score:", silhouette_score(X_scaled, h_labels))
+
+plt.scatter(P[:, 0], P[:, 1], c=h_labels, cmap="viridis")
+plt.title("Hierarchical Clustering")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.show()
+
+-----------------------------------------------------------------------------
+
+Practical 8: Density-Based Clustering – DBSCAN and CURE
+
+Practical 8A – DBSCAN
+DBSCAN uses the numeric student columns. The eps value may need adjustment depending on the clustering result.
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import DBSCAN
+import numpy as np
+
+df = pd.read_csv("student-columns.csv")
+X = df[["age", "Medu", "Fedu"]].dropna()
+scaled = StandardScaler().fit_transform(X)
+
+dbscan = DBSCAN(eps=0.7, min_samples=5)
+labels = dbscan.fit_predict(scaled)
+
+reduced = PCA(n_components=2).fit_transform(scaled)
+plt.figure(figsize=(8, 6))
+scatter = plt.scatter(reduced[:, 0], reduced[:, 1],
+                      c=labels, cmap="plasma")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.title("DBSCAN Clustering of Student Data")
+plt.colorbar(scatter, label="Cluster")
+plt.show()
+
+print("Cluster labels:", np.unique(labels))
+print("Noise points:", (labels == -1).sum())
+df.loc[X.index, "Cluster"] = labels
+print(df[["age", "Medu", "Fedu", "Cluster"]].head())
+
+------------------------------------------------------------------
+
+Practical 8B – CURE
+Install the extra library first using: pip install pyclustering
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pyclustering.cluster.cure import cure
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+df = pd.read_csv("student-columns.csv")
+X = df[["age", "Medu", "Fedu"]].dropna()
+scaled = StandardScaler().fit_transform(X)
+
+data = scaled.tolist()
+cure_model = cure(data, 3)
+cure_model.process()
+clusters = cure_model.get_clusters()
+
+labels = np.full(len(data), -1, dtype=int)
+for cluster_id, cluster in enumerate(clusters):
+    labels[cluster] = cluster_id
+
+reduced = PCA(n_components=2).fit_transform(scaled)
+plt.figure(figsize=(8, 6))
+scatter = plt.scatter(reduced[:, 0], reduced[:, 1],
+                      c=labels, cmap="viridis")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.title("CURE Clustering of Student Data")
+plt.colorbar(scatter, label="Cluster")
+plt.show()
+
+df.loc[X.index, "CURE_Cluster"] = labels
+print(df[["age", "Medu", "Fedu", "CURE_Cluster"]].head())
+
+
+---------------------------------------------------------------------------
+
+Practical 9: Artificial Neural Network (ANN)
+Code
+This uses scikit-learn MLPClassifier as an ANN and predicts the available sex label. It is a small demonstration dataset, so interpret accuracy cautiously.
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+
+df = pd.read_csv("student-columns.csv")
+X = df[["age", "Medu", "Fedu"]]
+y = df["sex"].map({"F": 0, "M": 1})
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+model = MLPClassifier(hidden_layer_sizes=(10,), solver="adam",
+                      learning_rate_init=0.01, random_state=42,
+                      max_iter=1, warm_start=True)
+
+losses = []
+for epoch in range(10):
+    model.fit(X_train, y_train)
+    losses.append(model.loss_)
+
+print("Training Accuracy:",
+      round(accuracy_score(y_train, model.predict(X_train)) * 100, 2), "%")
+print("Testing Accuracy:",
+      round(accuracy_score(y_test, model.predict(X_test)) * 100, 2), "%")
+
+plt.plot(range(1, 11), losses, marker="o")
+plt.title("ANN Training Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.tight_layout()
+plt.show()
+
+
+--------------------------------------------------------------------------------
+
+Practical 10: Genetic Algorithm
+Practical 10A (target-string search) and 10B (knapsack selection) in the supplied DOCX are standalone genetic-algorithm demonstrations. They do not read a CSV dataset, so no dataset-column replacement is required. Keep the original code from the supplied DOCX unchanged for these two sections.
+If you want, the genetic algorithm can be redesigned to optimize a student-related objective, but that would be a new problem definition rather than a direct dataset substitution.
+
+------------------------------------------------------------------------------------
+
+Practical 11: Apriori – Association Rule Mining
+Code
+The original groceries.csv is replaced with transactions made from each student's categorical attributes. Install the library using: pip install mlxtend
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori, association_rules
+
+data = pd.read_csv("student-columns.csv")
+
+# Convert each student's categorical details into one transaction.
+categorical_cols = ["school", "sex", "address", "famsize",
+                    "Pstatus", "Mjob", "Fjob"]
+transactions = []
+for _, row in data[categorical_cols].iterrows():
+    transaction = [col + "=" + str(row[col]).strip()
+                   for col in categorical_cols if pd.notna(row[col])]
+    transactions.append(transaction)
+
+te = TransactionEncoder()
+encoded = te.fit(transactions).transform(transactions)
+basket = pd.DataFrame(encoded, columns=te.columns_)
+
+print(basket.head())
+print("Shape:", basket.shape)
+
+frequent_itemsets = apriori(basket, min_support=0.05, use_colnames=True)
+print("\nFrequent Itemsets:\n", frequent_itemsets)
+
+top = frequent_itemsets.nlargest(15, "support").copy()
+top["items"] = top["itemsets"].apply(lambda x: ", ".join(sorted(x)))
+
+plt.figure(figsize=(12, 6))
+plt.bar(top["items"], top["support"],
+        color=sns.color_palette("pastel", len(top)))
+plt.xticks(rotation=90)
+plt.title("Top Frequent Student Attribute Itemsets")
+plt.xlabel("Items")
+plt.ylabel("Support")
+plt.tight_layout()
+plt.show()
+
+if len(frequent_itemsets) >= 2:
+    rules = association_rules(frequent_itemsets, metric="confidence",
+                              min_threshold=0.3)
+    print("\nAssociation Rules:\n",
+          rules[["antecedents", "consequents", "support",
+                 "confidence", "lift"]])
+else:
+    print("Not enough frequent itemsets to generate association rules.")
+
 df_clean.to_csv("student_columns_cleaned.csv", index=False)
 print("\nCleaned data saved successfully.")
+
 
