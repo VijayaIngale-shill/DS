@@ -1,3 +1,44 @@
+Dataset 
+
+student_performance_dataset.csv
+
+social_media_hours	youtube_hours	gaming_hours	productivity_score	exam_score	monthly_income	date	price	quantity sales_region	discount
+1	0.5	0.2	92	89	40000	01-01-2025	250	2	North	10
+2	1	1	70	68	30000	02-01-2025	180	3	South	5
+4	2	2	45	40	25000	03-01-2025	5000	2	East	20
+1	1	0	75	72	35000	04-01-2025	220	100	West	15
+0.5	0.2	0	96	94	45000	05-01-2025	300	2	North	8
+3	1.5	2	52	48	28000	06-01-2025	210	4	Central	unknown
+1.5	1	1	80	78	32000	07-01-2025	260	2	East	12
+1	0.5	0	88	85	38000	08-01-2025	240	3	South	10
+4	2	3	40	35	22000	09-01-2025	190	2	West	18
+
+spotify_tracks.xlsx
+
+song	danceability	energy	loudness	valence	popularity
+Song1	0.8	0.85	-4	0.85	85
+Song2	0.45	0.35	-10	0.3	25
+Song3	0.72	0.75	-5	0.72	72
+Song4	0.35	0.25	-12	0.2	18
+Song5	0.9	0.92	-3	0.9	92
+Song6	0.55	0.5	-7	0.55	48
+Song7	0.68	0.7	-5.5	0.68	68
+Song8	0.4	0.3	-11	0.25	22
+Song9	0.82	0.88	-3.5	0.82	88
+Song10	0.3	0.2	-13	0.15	15
+Song11	0.75	0.78	-4.5	0.75	78
+Song12	0.5	0.45	-8	0.45	40
+Song13	0.88	0.9	-2.8	0.88	90
+Song14	0.42	0.32	-10.5	0.28	28
+Song15	0.65	0.68	-6	0.65	65
+Song16	0.25	0.18	-14	0.1	12
+Song17	0.78	0.82	-4.2	0.8	82
+Song18	0.48	0.4	-9	0.38	35
+Song19	0.92	0.95	-2.5	0.92	95
+Song20	0.38	0.28	-11.5	0.22	20
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
 Practical 1: Data Cleaning – Missing Values
 Code
 The current file has no missing values, so the cleaning steps will leave its values unchanged. The code is still ready to handle missing values if they are present in a later copy.
