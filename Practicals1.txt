@@ -1,16 +1,153 @@
 AIM: Practical 01 Basics of Flask
 
-Step 1 : Flask
-Step2 : cmd
-Step 3: run the following comd
-Step 4: pip install virtualenv
 
-enter the following command --  Venv\scripts\active
+2. Create the project folder
+Open VS Code.
+Create a folder named:
+practical-1
+For example:
+C:\Users\biren\Downloads\practical-1
+Open this folder in VS Code.
+Open the terminal 
+Check your Python installation:
+python --version
+You should see your installed Python version.
 
-Pip install flask
-Pip install virualenv
-Py-m venv env
-Step 6: pip install Flask
+3. Install Virtualenv
+Your practical journal first asks you to install Virtualenv.
+Execute:
+>> python -m pip install virtualenv
+Virtualenv allows you to create an isolated Python environment for your project.
+
+4. Create a virtual environment
+Execute:
+>> python -m venv env
+This creates a folder named env inside your project.
+Your folder will look like this:
+practical-1/
+│
+└── env/
+
+5. Activate the virtual environment
+Since you're using Windows PowerShell, execute:
+>> .\env\Scripts\Activate.ps1
+If you are using Command Prompt instead, execute:
+>> env\Scripts\activate.bat
+Environment activated
+You should see (env) before your terminal path.
+Example:
+(env) PS C:\Users\biren\Downloads\practical-1>
+
+If PowerShell blocks activation, run:
+>> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Then execute the activation command again.
+
+6. Install Flask
+Execute:
+>> python -m pip install flask
+Wait until the installation finishes.
+Verify Flask installation:
+>> python -m pip show flask
+You should see Flask package information and its version.
+
+Part A: Flask Basics
+
+7. Check the Flask version
+Create a Python file named:
+>> version.py
+
+Paste this code:
+
+import flask
+print("Flask Version:", flask.version)
+
+Run:
+>> python version.py
+
+Expected output:
+Flask Version: 3.x.x
+8. Create a Hello World Flask application
+Create another Python file:
+>> hello.py
+Paste this code:
+
+from flask import Flask
+app = Flask(name)
+@app.route("/")
+def hello_world():
+return "Hello World"
+if name == "main":
+app.run(debug=True)
+
+Run the application
+In your terminal:
+>> python hello.py
+
+Expected output:
+Running on http://127.0.0.1:5000
+
+Open Chrome and visit:
+http://127.0.0.1:5000
+Hello World
+
+To stop the Flask server, press Ctrl + C in the terminal.
+
+Part B: Age Calculator using Flask
+Now we will create an Age Calculator where the user enters their birth year and current year, and Flask calculates their age.
+
+9. Create the Age Calculator folder
+Inside practical-1, create:
+age_calculator/
+│
+├── app.py
+│
+└── templates/
+    ├── index.html
+    └── result.html
+Important: Flask requires the folder name to be exactly templates.
+
+10. Create app.py
+Open age_calculator/app.py and paste:
+
+from flask import Flask, render_template, request
+app = Flask(name)
+@app.route("/")
+def home():
+return render_template("index.html")
+@app.route("/age", methods=["POST"])
+def age():
+birth = int(request.form["birth"])
+current = int(request.form["current"])
+age = current - birth
+return render_template("result.html", age=age)
+if name == "main":
+app.run(debug=True)
+
+
+11. Create index.html
+Inside the templates folder, create:
+index.html
+Paste:
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Age Calculator</title>
+</head>
+<body>
+<h2>Age Calculator</h2>
+<form action="/age" method="POST">
+Birth Year:
+<input type="number" name="birth" required>
+<br><br>
+Current Year:
+<input type="number" name="current" required>
+<br><br>
+<input type="submit" value="Calculate">
+</form>
+</body>
+</html>
+
 
 -------------------------------------------------------------------------------------------------
 
