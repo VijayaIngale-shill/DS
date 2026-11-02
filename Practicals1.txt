@@ -207,3 +207,633 @@ print("\n Checking data with missing charcter:")
 check_data_integrity(tampered_data_char,hash_value)
 
 -------------------------------------------------------------------------------------------------------
+
+Practical 3(A): Single Block Generation
+
+Step 2: Install the required library
+
+open terminal in vs code and run :-
+
+>> python -m pip install cryptography
+>> python -c "import cryptography; print('Cryptography installed successfully')"
+
+and copy and paste the code 
+
+
+import hashlib
+import time
+import json
+
+class Block:
+    def __init__(self, index, data, previous_hash):
+        self.index = index
+        self.timestamp = time.time()
+        self.data = data
+        self.previous_hash = previous_hash
+        self.nonce = 0
+        self.hash = self.compute_hash()
+
+    def compute_hash(self):
+        block_string = json.dumps({
+            'index': self.index,
+            'timestamp': self.timestamp,
+            'data': self.data,
+            'previous_hash': self.previous_hash,
+            'nonce': self.nonce
+        }, sort_keys=True)
+
+        return hashlib.sha256(block_string.encode()).hexdigest()
+
+genesis_block = Block(0, "Genesis Block", "0")
+
+print("Block index:", genesis_block.index)
+print("Block timestamp:", genesis_block.timestamp)
+print("Block data:", genesis_block.data)
+print("Previous hash:", genesis_block.previous_hash)
+print("Current hash:", genesis_block.hash)
+
+---------------------------------------------------------------------------------------------------
+
+Practical 3(B): User Input Single Block with One Transaction
+
+copy and paste the code 
+
+
+import hashlib
+
+from datetime import datetime
+
+import json
+
+def create_blockchain_transaction_block():
+    """
+    Takes users input,adds necessary blochain attributes (timestamp,hash),
+    and creates a secure,single transaction block(dictionary).
+    """
+
+    print("---BLockchain Transaction Block Creation---")
+
+    sender =input("Enter Sender Address (public Key):")
+    recipient = input("Enter Recipient Adress (Public Key):")
+    amount_str =input("Enter TRansaction Amount:")
+
+    try:
+        amount=float(amount_str)
+    except ValueError:
+        print("\n[ERROR]Transaction Amount must be valid number:")
+        return None
+
+    timestamp=datetime.now().strftime("%Y-%m-%d %H.%M:%S")
+
+    transaction_block={
+        "timestamp":timestamp,
+        "sender":sender,
+        "recipient":recipient,
+        "amount":amount,
+        "previous_hash":"0"*64,
+        "nonce":0
+    }
+
+    block_string = json.dumps(transaction_block, sort_keys=True).encode()
+    transaction_block["current_hash"] = hashlib.sha256(block_string).hexdigest()
+
+    print("\n---Secure Transaction BLock Created---")
+
+    for key, value in transaction_block.items():
+        print(f"{key}: {value}")
+    return transaction_block
+
+new_block =create_blockchain_transaction_block()
+
+
+enter this details 
+
+Enter Sender Address (public Key): Alice
+Enter Recipient Adress (Public Key): Bob
+Enter TRansaction Amount: 50
+
+--------------------------------------------------------------------------------------------
+
+Practical 3(C): Single Block with Multiple Transactions
+
+Copy and paste the code
+
+import hashlib
+import datetime
+import json
+
+class Block:
+    def __init__(self, transactions, previous_hash="0"*64):
+        self.index = 0
+        self.timestamp = str(datetime.datetime.now())
+        self.transactions = transactions
+        self.previous_hash = previous_hash
+        self.nonce = 0
+        self.hash = self.calculate_hash()
+
+    def calculate_hash(self):
+        block_string = json.dumps({
+            'index': self.index,
+            'timestamp': self.timestamp,
+            'transactions': self.transactions,
+            'previous_hash': self.previous_hash,
+            'nonce': self.nonce
+        }, sort_keys=True)
+
+        return hashlib.sha256(block_string.encode()).hexdigest()
+
+    def __str__(self):
+        return (f"Block index:{self.index}\n"
+                f"Timestamp:{self.timestamp}\n"
+                f"Transaction:\n" + "\n".join(f" -{tx}" for tx in self.transactions) + "\n"
+                f"Previous hash:{self.previous_hash}\n"
+                f"Hash:{self.hash}\n")
+
+transactions = [
+    "Vijaya pays Bob 5 BTC",
+    "Bob pays Charlie 2 BTC",
+    "Charlie pays Dave 1 BTC"
+]
+
+block = Block(transactions)
+print(block)
+
+---------------------------------------------------------------------------------------------------------
+
+Practical 3(D): Single Block with Multiple Transactions + Proof of Work
+
+copy and paste the code
+
+import hashlib
+import datetime
+import json
+import time
+
+class Block:
+    def __init__(self, transactions, difficulty=2, previous_hash="0"*64):
+        self.index = 0
+        self.timestamp = str(datetime.datetime.now())
+        self.transactions = transactions
+        self.previous_hash = previous_hash
+        self.nonce = 0
+        self.difficulty = difficulty
+        self.hash = self.compute_hash()
+
+    def compute_hash(self):
+        block_string = json.dumps({
+            'index': self.index,
+            'timestamp': self.timestamp,
+            'transactions': self.transactions,
+            'previous_hash': self.previous_hash,
+            'nonce': self.nonce
+        }, sort_keys=True)
+
+        return hashlib.sha256(block_string.encode()).hexdigest()
+
+    def mine(self):
+        print(f"Mining block with difficulty {self.difficulty}...")
+
+        start_time = time.time()
+        required_prefix = "0" * self.difficulty
+
+        while not self.hash.startswith(required_prefix):
+            self.nonce += 1
+            self.hash = self.compute_hash()
+
+        end_time = time.time()
+
+        print("\nBlock successfully mined!")
+        print("Nonce found:", self.nonce)
+        print(f"Time taken to mine: {end_time - start_time:.2f} seconds")
+
+    def __str__(self):
+        return (
+            f"\nBlock index: {self.index}\n"
+            f"Timestamp: {self.timestamp}\n"
+            f"Transactions:\n"
+            + "\n".join(f" - {tx}" for tx in self.transactions)
+            + "\n"
+            f"Previous hash: {self.previous_hash}\n"
+            f"Nonce: {self.nonce}\n"
+            f"Hash: {self.hash}\n"
+        )
+
+
+transactions = [
+    "vijaya pays Bob 5 BTC",
+    "Bob pays Charlie 2 BTC",
+    "Charlie pays Dave 1 BTC"
+]
+
+block = Block(transactions, difficulty=4)
+
+block.mine()
+
+print(block)
+
+--------------------------------------------------------------------------------------------------
+
+Practical 3(E): Single Block with User Input and Proof of Work
+
+copy and paste the code 
+
+
+import hashlib
+from datetime import datetime
+
+DIFFICULTY_LEVEL = 0
+BLOCKCHAIN = []
+
+class Block:
+    def __init__(self, data, prev_hash="0" * 64):
+        self.blockId = len(BLOCKCHAIN)
+        self.timestamp = datetime.now().strftime("%d-%b-%y %H:%M:%S.%f")
+        self.data = data
+        self.prev_hash = prev_hash
+        self.nonce = 0
+        self.hash = self.hashBlock()
+
+    def hashBlock(self):
+        block_string = (
+            str(self.blockId)
+            + str(self.data)
+            + str(self.prev_hash)
+            + str(self.nonce)
+        )
+
+        self.hash = hashlib.sha256(block_string.encode()).hexdigest()
+
+        while self.hash[:DIFFICULTY_LEVEL] != "0" * DIFFICULTY_LEVEL:
+            self.nonce += 1
+
+            block_string = (
+                str(self.blockId)
+                + str(self.data)
+                + str(self.prev_hash)
+                + str(self.nonce)
+            )
+
+            self.hash = hashlib.sha256(block_string.encode()).hexdigest()
+
+        return self.hash
+
+    def __str__(self):
+        return (
+            f"\nBlock ID: {self.blockId}\n"
+            f"Timestamp: {self.timestamp}\n"
+            f"Data: {self.data}\n"
+            f"Previous Hash: {self.prev_hash}\n"
+            f"Nonce: {self.nonce}\n"
+            f"Hash: {self.hash}\n"
+        )
+
+
+data = input("Enter the data for the block: ")
+
+DIFFICULTY_LEVEL = int(
+    input("Enter difficulty level (number of leading zeros): ")
+)
+
+prev_hash = BLOCKCHAIN[-1].hash if BLOCKCHAIN else "0" * 64
+
+block = Block(data, prev_hash)
+BLOCKCHAIN.append(block)
+
+print(block)
+
+
+When prompted, enter:
+
+Enter the data for the block: Alice pays Bob 100 BTC
+Enter difficulty level (number of leading zeros): 4
+
+-------------------------------------------------------------------------------------------------------------------------
+
+Practical 4(A): Blockchain with Multiple Blocks & Basic Validation
+
+
+import hashlib
+import json
+import time
+
+def hash_block(block):
+    block_string = json.dumps(block, sort_keys=True).encode()
+    return hashlib.sha256(block_string).hexdigest()
+
+
+def create_block(index, previous_hash, transactions):
+    block = {
+        'index': index,
+        'timestamp': time.time(),
+        'transactions': transactions,
+        'previous_hash': previous_hash
+    }
+
+    block['hash'] = hash_block(block)
+    return block
+
+
+def is_valid_block(block, previous_block):
+    if block['index'] != previous_block['index'] + 1:
+        print("Invalid index")
+        return False
+
+    if block['previous_hash'] != previous_block['hash']:
+        print("Previous hash mismatch")
+        return False
+
+    if hash_block({k: block[k] for k in block if k != 'hash'}) != block['hash']:
+        print("Hash mismatch")
+        return False
+
+    return True
+
+
+def is_valid_chain(chain):
+    for i in range(1, len(chain)):
+        if not is_valid_block(chain[i], chain[i - 1]):
+            print(f"Block {i} is invalid")
+            return False
+
+    return True
+
+
+chain = []
+
+# Create the Genesis Block
+chain.append(create_block(0, "0", []))
+
+# Generate two additional blocks
+for i in range(1, 3):
+    txns = [
+        f"User{i} pays User{i+1} {10 * j}"
+        for j in range(1, 4)
+    ]
+
+    chain.append(create_block(i, chain[-1]['hash'], txns))
+
+# Display all blocks and validate the blockchain
+for block in chain:
+    print(json.dumps(block, indent=4))
+    print()
+
+print("Is blockchain valid?:", is_valid_chain(chain))
+
+-----------------------------------------------------------------------------------------------
+
+Practical 4(B): Multiple Block Generation with Proof-of-Work
+
+
+import hashlib
+import time
+
+class Block:
+    def __init__(self, index, previous_hash, data):
+        self.index = index
+        self.previous_hash = previous_hash
+        self.data = data
+        self.timestamp = time.time()
+        self.nonce = 0
+        self.hash = self.mine_block()
+
+    def calculate_hash(self):
+        block_data = (
+            str(self.index)
+            + str(self.previous_hash)
+            + str(self.timestamp)
+            + str(self.data)
+            + str(self.nonce)
+        )
+
+        return hashlib.sha256(block_data.encode()).hexdigest()
+
+    def mine_block(self):
+        difficulty = 4
+
+        while True:
+            hash_value = self.calculate_hash()
+
+            if hash_value.startswith("0" * difficulty):
+                return hash_value
+
+            self.nonce += 1
+
+
+blockchain = []
+
+# Create Genesis Block
+genesis_block = Block(0, "0", "Genesis Block")
+blockchain.append(genesis_block)
+
+# Generate four more blocks
+for i in range(1, 5):
+    previous_block = blockchain[-1]
+
+    new_block = Block(
+        i,
+        previous_block.hash,
+        f"Block {i} Data"
+    )
+
+    blockchain.append(new_block)
+
+# Display all blocks
+for block in blockchain:
+    print("Block:", block.index)
+    print("Data:", block.data)
+    print("Previous Hash:", block.previous_hash)
+    print("Hash:", block.hash)
+    print("Nonce:", block.nonce)
+    print("-" * 60)
+
+-----------------------------------------------------------------------------------------------------
+
+Practical 4(C): Multiple Block Generation
+
+
+import hashlib
+import json
+import time
+
+def create_transaction(sender, recipient, amount):
+    return {
+        "sender": sender,
+        "recipient": recipient,
+        "amount": amount
+    }
+
+
+def compute_hash(block):
+    block_string = json.dumps(block, sort_keys=True).encode()
+    return hashlib.sha256(block_string).hexdigest()
+
+
+def create_block(index, transactions, previous_hash):
+    block = {
+        "index": index,
+        "timestamp": time.time(),
+        "transactions": transactions,
+        "previous_hash": previous_hash
+    }
+
+    block["hash"] = compute_hash(block)
+    return block
+
+
+def generate_blockchain(num_blocks, tx_per_block=2):
+    blockchain = []
+
+    # Create Genesis Block
+    genesis_block = create_block(0, [], "0")
+    blockchain.append(genesis_block)
+
+    # Generate remaining blocks
+    for i in range(1, num_blocks):
+        transactions = [
+            create_transaction(
+                f"User{i}",
+                f"User{i+1}",
+                i * 10 + j
+            )
+            for j in range(tx_per_block)
+        ]
+
+        previous_hash = blockchain[-1]["hash"]
+
+        new_block = create_block(
+            i,
+            transactions,
+            previous_hash
+        )
+
+        blockchain.append(new_block)
+
+    return blockchain
+
+
+if __name__ == "__main__":
+    chain = generate_blockchain(5, tx_per_block=3)
+
+    for block in chain:
+        print(json.dumps(block, indent=4))
+        print()
+
+--------------------------------------------------------------------------------------
+
+Practical 4(D): User Input
+
+
+import hashlib
+import json
+import time
+
+
+def create_transaction(sender, recipient, amount):
+    return {
+        "sender": sender,
+        "recipient": recipient,
+        "amount": amount
+    }
+
+
+def compute_hash(block):
+    block_string = json.dumps(block, sort_keys=True).encode()
+    return hashlib.sha256(block_string).hexdigest()
+
+
+def create_block(index, transactions, previous_hash):
+    block = {
+        "index": index,
+        "timestamp": time.time(),
+        "transactions": transactions,
+        "previous_hash": previous_hash
+    }
+
+    block["hash"] = compute_hash(block)
+    return block
+
+
+def generate_blockchain():
+    blockchain = []
+
+    num_blocks = int(input("Enter number of blocks: "))
+    tx_per_block = int(input("Enter transactions per block: "))
+
+    # Create Genesis Block
+    genesis_block = create_block(0, [], "0")
+    blockchain.append(genesis_block)
+
+    # Generate remaining blocks
+    for i in range(1, num_blocks):
+        print(f"\n--- Block {i} ---")
+
+        transactions = []
+
+        for j in range(tx_per_block):
+            print(f"\nTransaction {j + 1}:")
+
+            sender = input("Sender: ")
+            recipient = input("Recipient: ")
+            amount = float(input("Amount: "))
+
+            transactions.append(
+                create_transaction(sender, recipient, amount)
+            )
+
+        previous_hash = blockchain[-1]["hash"]
+
+        new_block = create_block(
+            i,
+            transactions,
+            previous_hash
+        )
+
+        blockchain.append(new_block)
+
+    return blockchain
+
+
+if __name__ == "__main__":
+    chain = generate_blockchain()
+
+    print("\n========== BLOCKCHAIN ==========\n")
+
+    for block in chain:
+        print(json.dumps(block, indent=4))
+        print()
+
+
+enter this details
+
+Enter number of blocks: 3
+Enter transactions per block: 2
+
+--- Block 1 ---
+
+Transaction 1:
+Sender: bod
+Recipient: me
+Amount: 30
+
+Transaction 2:
+Sender: vijaya
+Recipient: biren
+Amount: 20
+
+--- Block 2 ---
+
+Transaction 1:
+Sender: viju
+Recipient: me
+Amount: 50
+
+Transaction 2:
+Sender: bob
+Recipient: charlie
+Amount: 70
+
+
+--------------------------------------------------------------------------------
+
+Practical 5(A): Smart Contracts Basics – Set and Get Messages
+
