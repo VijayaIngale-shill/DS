@@ -5,12 +5,15 @@ AIM: Practical 01 Basics of Flask
 Open VS Code.
 Create a folder named:
 practical-1
+
 For example:
 C:\Users\biren\Downloads\practical-1
+
 Open this folder in VS Code.
 Open the terminal 
 Check your Python installation:
 python --version
+
 You should see your installed Python version.
 
 3. Install Virtualenv
