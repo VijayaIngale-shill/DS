@@ -939,3 +939,644 @@ Execute:
 
 This disconnects your terminal from the Ubuntu VM.
 
+---------------------------------------------------------------------------------------------------------------------
+
+Practical 8: Campus User Authentication Service
+
+Step 1: Check the required software
+You need:
+•	Python
+•	MySQL Server
+•	MySQL Workbench (optional, but useful)
+•	VS Code or Notepad
+•	CMD
+
+Open CMD and check Python:
+>> python --version
+
+Check pip:
+>> python -m pip --version
+
+If both commands show version numbers, continue.
+
+Step 2: Start MySQL Server
+Open MySQL Workbench and connect to your local MySQL server.
+
+If you are using Windows Services instead:
+1. Press Win + R.
+2. Type services.msc.
+3. Find MySQL80 or your installed MySQL service.
+4. Right-click and select Start if it is stopped.
+
+Open a SQL query tab in Workbench and execute:
+
+CREATE DATABASE campus_auth;
+
+CREATE USER 'campus_user'@'localhost'
+IDENTIFIED BY 'campus123';
+
+GRANT ALL PRIVILEGES ON campus_auth.*
+TO 'campus_user'@'localhost';
+
+FLUSH PRIVILEGES;
+
+Check whether the database was created:
+>> SHOW DATABASES;
+
+You should see:
+campus_auth
+
+Important: We are using campus123 as the example password. Use the same password in your .env file in Step 6.
+
+Step 3: Create the project folder
+Open CMD and execute these commands one by one:
+>> cd %USERPROFILE%
+>> mkdir campus-auth
+>> cd campus-auth
+
+Your project location should look like:
+C:\Users\YourUsername\campus-auth
+
+Step 4: Create a Python virtual environment
+Run:
+>> python -m venv venv
+
+Activate it:
+>>venv\Scripts\activate
+
+You should see (venv) before your command prompt.
+For example:
+(venv) C:\Users\YourUsername\campus-auth>
+
+Upgrade pip:
+>> python -m pip install --upgrade pip
+
+Step 5: Install required Python libraries
+Execute:
+>> pip install fastapi uvicorn sqlalchemy mysql-connector-python python-dotenv bcrypt PyJWT
+
+Check the installation:
+>> pip list
+
+Step 6: Create the project files
+Inside your campus-auth folder, create these five files:
+
+campus-auth/
+│
+├── venv/
+│
+├── main.py
+├── database.py
+├── models.py
+├── auth.py
+└── .env
+
+You can create them using CMD:
+
+type nul > main.py
+type nul > database.py
+type nul > models.py
+type nul > auth.py
+type nul > .env
+
+Open the folder in VS Code:
+code .
+
+If VS Code is not recognized, open VS Code manually and select File → Open Folder → campus-auth.
+
+Step 7: Configure the .env file
+
+Open .env and paste:
+
+DATABASE_URL=mysql+mysqlconnector://campus_user:campus123@localhost:3306/campus_auth
+
+JWT_SECRET=my-campus-auth-secret-key-2026
+
+Save the file.
+
+
+Step 8: Configure the database connection
+Open database.py and paste:
+
+import os
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=True
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
+
+Save the file.
+
+Step 9: Create the User model
+Open models.py and paste:
+
+from sqlalchemy import Column, Integer, String
+
+from database import Base
+
+class User(Base):
+
+    __tablename__ = "users"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    name = Column(
+        String(100),
+        nullable=False
+    )
+
+    email = Column(
+        String(255),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    password_hash = Column(
+        String(255),
+        nullable=False
+    )
+
+    role = Column(
+        String(50),
+        nullable=False,
+        default="student"
+    )
+
+    oauth_provider = Column(
+        String(50),
+        nullable=True
+    )
+
+    oauth_id = Column(
+        String(255),
+        nullable=True
+    )
+
+Save the file.
+
+Step 10: Create authentication functions
+Open auth.py and paste:
+
+import os
+import bcrypt
+import jwt
+
+from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
+
+load_dotenv()
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_ALGORITHM = "HS256"
+
+# Hash password
+def hash_password(password: str) -> str:
+
+    hashed = bcrypt.hashpw(
+        password.encode("utf-8"),
+        bcrypt.gensalt()
+    )
+
+    return hashed.decode("utf-8")
+
+
+# Verify password
+def verify_password(password: str, password_hash: str) -> bool:
+
+    return bcrypt.checkpw(
+        password.encode("utf-8"),
+        password_hash.encode("utf-8")
+    )
+
+
+# Create JWT token
+def create_access_token(user_id: int, role: str) -> str:
+
+    payload = {
+        "sub": str(user_id),
+        "role": role,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+    }
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALGORITHM
+    )
+
+
+# Verify JWT token
+def verify_token(token: str):
+
+    return jwt.decode(
+        token,
+        JWT_SECRET,
+        algorithms=[JWT_ALGORITHM]
+    )
+
+
+Save the file.
+
+Step 11: Create the main FastAPI application
+
+This is the main part of the practical.
+Open main.py and paste the complete code below:
+
+from fastapi import FastAPI, Depends, HTTPException, Header
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from database import engine, Base, get_db
+from models import User
+
+from auth import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    verify_token
+)
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Campus User Authentication Service"
+)
+
+
+# Registration request model
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    role: str = "student"
+
+# Login request model
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+# Google OAuth mock request model
+class GoogleOAuthRequest(BaseModel):
+    google_id: str
+    email: str
+    name: str
+
+# Home route
+@app.get("/")
+def home():
+
+    return {
+        "message": "Campus Authentication Service is running"
+    }
+
+# Register user
+@app.post("/register")
+def register(
+    request: RegisterRequest,
+    db: Session = Depends(get_db)
+):
+
+    existing_user = db.query(User).filter(
+        User.email == request.email
+    ).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    hashed_password = hash_password(request.password)
+
+    user = User(
+        name=request.name,
+        email=request.email,
+        password_hash=hashed_password,
+        role=request.role
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "User registered successfully",
+        "user_id": user.id
+    }
+
+# Login user
+@app.post("/login")
+def login(
+    request: LoginRequest,
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(User).filter(
+        User.email == request.email
+    ).first()
+
+    if user is None or not verify_password(
+        request.password,
+        user.password_hash
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    token = create_access_token(
+        user.id,
+        user.role
+    )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+# View user profile
+@app.get("/profile")
+def profile(
+    authorization: str = Header(None),
+    db: Session = Depends(get_db)
+):
+
+    if authorization is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization header required"
+        )
+
+    try:
+        scheme, token = authorization.split(" ", 1)
+
+        if scheme.lower() != "bearer":
+            raise ValueError("Invalid authorization scheme")
+
+        payload = verify_token(token)
+
+        user_id = int(payload["sub"])
+
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )
+
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role
+    }
+
+
+# Google OAuth mock
+@app.post("/oauth/google")
+def google_oauth(
+    request: GoogleOAuthRequest,
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(User).filter(
+        User.email == request.email
+    ).first()
+
+    if user is None:
+
+        user = User(
+            name=request.name,
+            email=request.email,
+            password_hash="OAUTH_USER",
+            role="student",
+            oauth_provider="google",
+            oauth_id=request.google_id
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    else:
+
+        user.oauth_provider = "google"
+        user.oauth_id = request.google_id
+
+        db.commit()
+
+    token = create_access_token(
+        user.id,
+        user.role
+    )
+
+    return {
+        "message": "Google OAuth user mapped successfully",
+        "user_id": user.id,
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+Save the file.
+
+Important: The Google OAuth endpoint here is a mock demonstration, as shown in your practical. It maps a supplied Google ID to a local user. It does not perform real Google sign-in or verify a Google-issued identity token.
+
+Step 12: Run the application
+
+Before starting, check that:
+•	MySQL Server is running.
+•	Your .env credentials are correct.
+•	Your virtual environment is activated.
+•	All five files are saved.
+
+In CMD, from inside campus-auth, run:
+>> python -m uvicorn main:app --reload
+
+If everything works, you should see something similar to:
+
+Uvicorn running on http://127.0.0.1:8000
+Application startup complete.
+Server running
+Keep this CMD window open. Do not close it while testing.
+
+Step 13: Open FastAPI Swagger UI
+Open Chrome and visit:
+http://127.0.0.1:8000/docs
+
+You should see the Swagger interface with these endpoints:
+
+Campus User Authentication Service
+GET /GET
+POST /register     POST
+POST /login     POST
+GET /profile     GET
+POST /oauth/google     POST
+
+Step 14: Test the registration API
+
+1.	Expand POST /register.
+2.	Click Try it out.
+3.	Enter this JSON:
+
+{
+  "name": "Rahul Sharma",
+  "email": "rahul@gmail.com",
+  "password": "rahul123",
+  "role": "student"
+}
+
+4. Click Execute.
+Expected response:
+
+{
+  "message": "User registered successfully",
+  "user_id": 1
+}
+
+Registration successful
+
+Your user is now stored in MySQL.
+If you execute the same registration again, you should get:
+
+{
+  "detail": "Email already registered"
+}
+
+This prevents duplicate email registration.
+
+Step 15: Test the login API
+1.	Expand POST /login.
+2.	Click Try it out.
+3.	Enter:
+
+{
+  "email": "rahul@gmail.com",
+  "password": "rahul123"
+}
+
+4. Click Execute.
+Expected response:
+{
+  "access_token": "your_generated_jwt_token",
+  "token_type": "bearer"
+}
+
+Copy the complete access_token value.
+
+This token is generated after successful login and is valid for one hour.
+
+Step 16: Test the profile API
+This endpoint requires authentication.
+1.	Expand GET /profile.
+2.	Click Try it out.
+3.	In the authorization field, enter:
+
+Bearer YOUR_COPIED_TOKEN
+Replace YOUR_COPIED_TOKEN with the actual token you received in Step 15.
+
+4. Click Execute.
+Expected response:
+{
+  "id": 1,
+  "name": "Rahul Sharma",
+  "email": "rahul@gmail.com",
+  "role": "student"
+}
+Authentication successful
+If you don't provide the token, the API should return:
+{
+  "detail": "Authorization header required"
+}
+
+Step 17: Test the Google OAuth mock
+1.	Expand POST /oauth/google.
+2.	Click Try it out.
+3.	Enter:
+{
+  "google_id": "google-12345",
+  "email": "rahul@gmail.com",
+  "name": "Rahul Sharma"
+}
+
+4. Click Execute.
+Expected response:
+{
+  "message": "Google OAuth user mapped successfully",
+  "user_id": 1,
+  "access_token": "your_generated_jwt_token",
+  "token_type": "bearer"
+}
+
+This demonstrates mapping a Google user to the local user account and generating a JWT token.
+
+Step 18: Verify the MySQL database
+
+Open MySQL Workbench and execute:
+>> USE campus_auth;
+
+Check the tables:
+>> SHOW TABLES;
+
+You should see:
+users
+
+Check the table structure:
+>> DESCRIBE users;
+
+View registered users:
+>> SELECT * FROM users;
+
+You should see Rahul Sharma's record. The password_hash column should contain a bcrypt hash, not the original password.
+Final project structure
+
+Your completed folder should look like this:
+campus-auth/
+│
+├── venv/
+│
+├── .env
+├── main.py
+├── database.py
+├── models.py
+└── auth.py
+
+
