@@ -11,3 +11,850 @@ Pip install flask
 Pip install virualenv
 Py-m venv env
 Step 6: pip install Flask
+
+-------------------------------------------------------------------------------------------------
+
+Practical 2: Create a To-Do List using Flask and Postman
+
+Step 1:- Create the project folder name it Flask_Practical
+
+step 2:- insid the flask_practival create a file name my_flask_app.py
+
+step 3:- Open the VS Code terminal or CMD. >>> pip install flask
+
+>> python -m flask --version
+
+step 4:- paste the following code inside the my_flask_app.py
+
+
+from flask import Flask, request, jsonify
+import datetime
+
+app = Flask(__name__)
+
+todos = []
+next_id = 1
+
+
+# CREATE TODO - POST
+@app.route('/todos', methods=['POST'])
+def create_todo():
+    global next_id
+
+    data = request.get_json()
+    task = data.get('task')
+    status = data.get('status')
+
+    if task is None:
+        return jsonify({'error': 'Task is required'}), 400
+
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    new_todo = {
+        'id': next_id,
+        'task': task,
+        'date': date,
+        'status': status
+    }
+
+    todos.append(new_todo)
+    next_id += 1
+
+    return "Task added", 201
+
+
+# GET ALL TODOS
+@app.route('/todos', methods=['GET'])
+def get_todos():
+    return jsonify(todos)
+
+
+# GET TODO BY ID
+@app.route('/todos/<int:todo_id>', methods=['GET'])
+def get_todo(todo_id):
+
+    todo = next(
+        (todo for todo in todos if todo['id'] == todo_id),
+        None
+    )
+
+    if todo is None:
+        return jsonify({'error': 'Todo not found'}), 404
+
+    return jsonify(todo)
+
+
+# UPDATE TODO - PUT
+@app.route('/todos/<int:todo_id>', methods=['PUT'])
+def update_todo(todo_id):
+
+    data = request.get_json()
+    task = data.get('task')
+
+    if task is None:
+        return jsonify({'error': 'Task is required'}), 400
+
+    todo = next(
+        (todo for todo in todos if todo['id'] == todo_id),
+        None
+    )
+
+    if todo is None:
+        return jsonify({'error': 'Todo not found'}), 404
+
+    todo['task'] = task
+
+    return jsonify(todo)
+
+
+# DELETE TODO
+@app.route('/todos/<int:todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    global todos
+
+    todo = next(
+        (todo for todo in todos if todo['id'] == todo_id),
+        None
+    )
+
+    if todo is None:
+        return jsonify({'error': 'Todo not found'}), 404
+
+    todos = [
+        todo for todo in todos
+        if todo['id'] != todo_id
+    ]
+
+    return jsonify({"message": "Task Deleted"})
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+step 5 :- Open the terminal inside VS Code. Execute:  >> python my_flask_app.py
+
+step 6:- You should see something similar to: * Running on http://127.0.0.1:5000
+
+step 7 :- copy the following link and paste it in the postman 
+
+step 8:- Test the API using Postman
+
+Open Postman.
+Create a new HTTP request.
+Select the POST method.
+Enter this URL: http://127.0.0.1:5000
+Click on Body.
+Select raw.
+Select JSON from the dropdown.
+Paste this JSON:
+
+{
+    "task": "Complete practical",
+    "status": "Pending"
+}
+
+Click Send.
+
+Operation 2: View all tasks (GET)
+Purpose: Display all tasks stored in the application.
+
+Follow these steps:
+1. Select GET.
+2. Enter the URL: http://127.0.0.1:5000/todos
+3. Click Send.
+
+Operation 3: View a particular task (GET by ID)
+Purpose: Retrieve a specific task using its ID.
+
+Follow these steps:
+1. Select GET.
+2. Enter this URL: http://127.0.0.1:5000/todos/1
+3. Click Send.
+
+Operation 4: Update a task (PUT)
+Purpose: Change an existing task.
+
+Follow these steps:
+1. Select PUT.
+2. Enter this URL: http://127.0.0.1:5000/todos/1
+3. Click Body.
+4. Select raw → JSON.
+5. Enter:
+
+{
+    "task": "Submit Practical"
+}
+
+6. Click Send.
+
+Operation 5: Delete a task (DELETE)
+Purpose: Remove a task from the To-Do List.
+
+Follow these steps:
+1. Select DELETE.
+2. Enter this URL:http://127.0.0.1:5000/todos/1
+3. Click Send.
+
+7. Verify the deletion
+Now check whether the task was successfully deleted.
+1. Select GET.
+2. Enter: http://127.0.0.1:5000/todos
+3. Click Send.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Practical 3:- Create a Health Tracker API using Express.js
+
+
+step1: install node.js
+step2: Create the project folder
+Open CMD and execute:  
+>> cd downloads
+>> mkdir Flask_api
+>> cd Flask_api
+
+step 3:- Flask_api --- Open this folder in VS Code.
+
+and create a file name ---- HealthTracker.js
+
+step 4: Open the VS Code terminal inside the Flask_api folder.
+Run the following commands 
+>> node -v
+>> npm -v
+
+step 5 :- Execute: >>> npm init -y
+
+step 6:- Install Express and Axios
+
+step 7 :- Create the HealthTracker.js file
+Paste the following code.
+
+
+const express = require("express");
+const axios = require("axios");
+
+const app = express();
+const port = 3000;
+
+app.use(express.json());
+
+let healthdatas = [];
+
+// GET API - View all health records
+app.get("/healthtracker", (req, res) => {
+    res.send(healthdatas);
+});
+
+// POST API - Create health tracker
+app.post("/healthcare", (req, res) => {
+
+    const { title, duration } = req.body;
+
+    if (!title || !duration) {
+        return res.status(400).json({
+            message: "Please provide title and duration"
+        });
+    }
+
+    const healthdata = {
+        id: healthdatas.length + 1,
+        title,
+        duration
+    };
+
+    // Send data to Flask To-Do API
+    axios.post("http://127.0.0.1:5000/todos", {
+        task: title,
+        status: "completed"
+    })
+    .then((response) => {
+        console.log("Response from Flask:", response.data);
+    })
+    .catch((error) => {
+        console.log(error.message);
+    });
+
+    healthdatas.push(healthdata);
+
+    res.status(201).json(healthdata);
+});
+
+// Start Express server
+app.listen(port, () => {
+    console.log("Server running at http://localhost:3000");
+});
+
+
+step 8:- Start the Express application
+on the terminal run 
+
+>> node HealthTracker.js
+
+>> copy the url like --- Server running at http://localhost:3000
+
+step 9:- Open Postman.
+1. Select POST.
+2. Enter the following URL: http://localhost:3000/healthcare
+3. Click Body.
+4. Select raw.
+5. Select JSON.
+6. Paste this data:
+
+{
+    "title": "Morning Walk",
+    "duration": "30 Minutes"
+}
+
+7. Click Send.
+
+step 10:- Test 2: View Health Tracker (GET)
+Now we will retrieve all exercise records.
+
+1. Select GET.
+2. Enter: http://localhost:3000/healthtracker
+3. Click Send.
+
+--------------------------------------------------------------------------------------------------------------
+
+Practical 4: Implement Message Queue using RabbitMQ
+
+step 1 . Install Erlang
+First, we need to install Erlang.
+1. Open the official Erlang download website.
+2. Download the Windows installer.
+3. Run the installer.
+4. Follow the installation instructions.
+5. Complete the installation.
+Official website: Download Erlang :-- https://www.erlang.org/downloads?
+
+After installation, open CMD and execute:
+erl -version
+
+If Erlang is installed and available in PATH, it should display its version.
+
+If CMD does not recognize erl, restart CMD or Windows and check the installation PATH.
+
+step 2:-. Install RabbitMQ
+After Erlang is installed:
+1. Open the official RabbitMQ installation page.
+2. Select the Windows installation option.
+3. Download the Windows installer.
+4. Run the installer as Administrator.
+5. Complete the installation.
+Official website: RabbitMQ Windows Installation Guide.:-- https://www.rabbitmq.com/docs/install-windows?
+
+The RabbitMQ installer normally installs and starts RabbitMQ as a Windows service. 
+RabbitMQ+1
+
+Verify RabbitMQ installation
+Open CMD and execute:
+>> rabbitmqctl status
+
+
+If RabbitMQ is running, you should receive information about the RabbitMQ node.
+
+If the command is not recognized, open the RabbitMQ Command Prompt from the Windows Start menu.
+Optional: Enable RabbitMQ Management Dashboard
+This gives you a browser-based interface to view queues and messages.
+
+Run:>>>  rabbitmq-plugins enable rabbitmq_management
+
+Then open: RabbitMQ Management DashboardDefault login:---  http://localhost:15672/
+Username	Password
+guest      guest     
+
+
+Step 3:- . Install the Python pika library
+Now we need to connect Python with RabbitMQ.
+
+Open CMD and execute: >> pip install pika
+
+What is Pika?
+
+Pika is a Python library that allows Python programs to communicate with RabbitMQ.
+
+Verify the installation: >>>  python -c "import pika; print('Pika installed successfully')"
+
+Step 4:- Create the project folder
+Create a folder on your Desktop called: -- RabbitMQ_Practical
+
+Open this folder in VS Code.
+
+Create two Python files:
+- Send.py
+- Receive.py
+
+step 5:- Open Send.py and paste this code:
+
+
+import pika
+
+# Connect to RabbitMQ
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost')
+)
+
+channel = connection.channel()
+
+# Create a queue
+channel.queue_declare(queue='hello', durable=True)
+
+# Message to send
+message = "Hello, RabbitMQ!"
+
+# Send message to queue
+channel.basic_publish(
+    exchange='',
+    routing_key='hello',
+    body=message
+)
+
+print(f"[x] Sent '{message}'")
+
+# Close connection
+connection.close()
+
+
+step 5:- Open Receive.py and paste:
+
+
+import pika
+
+# Connect to RabbitMQ
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost')
+)
+
+channel = connection.channel()
+
+# Declare the same queue
+channel.queue_declare(queue='hello', durable=True)
+
+# Function to receive message
+def callback(ch, method, properties, body):
+    print(f"[x] Received {body.decode()}")
+
+    # Acknowledge message
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+# Receive messages
+channel.basic_consume(
+    queue='hello',
+    on_message_callback=callback
+)
+
+print('[*] Waiting for messages. To exit press CTRL+C')
+
+# Start receiving
+channel.start_consuming()
+
+
+step 6:- Open VS Code terminal.
+
+Execute:- >>> python Receive.py
+
+step 7 :- Open a second terminal in VS Code.
+
+Execute :- python Send.py
+-------------------------------------------------------------------------------------------------------------------------
+
+AIM : Practical 5
+
+A. Create a Docker Image to host a HelloWorld ExpressJS Application
+
+step 1 : install docker desktop from the chrome 
+
+step 2 :- pen widows powershell and command >>  wsl --install
+
+restart and open powershell >> wsl --version >> wsl --status
+
+step 3 :-  create a folder name >> docker 
+
+step 4 :- create a server.file inside the docker foler >> open vscode and create server.js
+
+server.js 
+code:-
+
+'use strict';
+
+const express = require('express');
+
+// Constants
+const PORT = 8080;
+const HOST = '0.0.0.0';
+
+// App
+const app = express();
+
+// Routes
+app.get('/', (req, res) => {
+  res.send('Hello World');
+});
+
+// Start Server
+app.listen(PORT, HOST, () => {
+  console.log(`Running on http://${HOST}:${PORT}`);
+});
+
+
+step 5 : - create a file inside docker file name >> Dockerfile 
+and second file with a dot >> .dockerignore
+
+files will be >> server.js , Dockerfile , .dockerignore
+
+this files should be their
+docker/
+│
+├── node_modules/
+├── .dockerignore
+├── Dockerfile
+├── package.json
+├── package-lock.json
+└── server.js
+
+step 6 :- also check >> node --version , >> npm --version
+
+step 7:-  keep the docker application open in the background 
+
+on the terminal of docker type command >> docker build -t node-web-app .
+
+>> docker images
+
+>> docker run -d -p 8080:8080 --name node-web-container node-web-app
+
+>> docker ps
+
+>> open this link in chrome -- http://localhost:8080
+
+>> open docker application and check 
+
+-------------------------------------------------------------------------------------------------------------------
+
+practica 5 B
+Create a multi-stage Dockerfile for a production-ready ExpressJS application to minimize image size and remove development dependencies.
+
+your folder should contain this files
+
+docker/
+│
+├── node_modules/
+├── .dockerignore
+├── Dockerfile
+├── package.json
+├── package-lock.json
+└── server.js 
+
+
+step 1: - open Dockerfile and paste this code
+
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+FROM node:18-alpine AS production
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=builder /app ./
+
+RUN npm prune --omit=dev && npm cache clean --force
+
+EXPOSE 8080
+
+CMD ["node", "server.js"]
+
+
+steps 2:-  Open .dockerignore and add:
+
+node_modules
+npm-debug.log
+.git
+
+step 3:- Open the VS Code terminal. 
+
+make sure your inside this C:\Users\lab\Downloads\docker  
+
+run this >> docker build -t node-web-app-multi .
+
+>> docker images
+
+>> docker run -d -p 8081:8080 --name node-web-multi node-web-app-multi
+
+>> docker ps
+
+>> open this link http://localhost:8081
+
+>> open docker application and check 
+
+to stop the server >> docker stop node-web-container node-web-multi
+
+------------------------------------------------------------------------------------
+
+
+practical 5 C
+
+same procedure just like the A and B
+
+step 1 : open terminal of docker in vscode type >> npm install mongodb
+
+step 2: repalce the server.js code with the below
+
+const express = require("express");
+const { MongoClient } = require("mongodb");
+
+const app = express();
+
+const PORT = 8080;
+const url = process.env.MONGO_URI;
+
+const client = new MongoClient(url);
+
+async function connectDB() {
+    try {
+        await client.connect();
+        console.log("Connected to MongoDB");
+    } catch (err) {
+        console.error("MongoDB connection error:", err);
+        process.exit(1);
+    }
+}
+
+app.get("/", (req, res) => {
+    res.send("Hello from Express + MongoDB!");
+});
+
+async function startServer() {
+    await connectDB();
+
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+startServer();
+
+step 2 :-  Open your existing Dockerfile and replace its contents with:
+
+# Use official Node.js Alpine image
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application source code
+COPY . .
+
+# Expose application port
+EXPOSE 8080
+
+# Start application
+CMD ["node", "server.js"]
+
+step 3 :- Create docker-compose.yml file in your folder
+paste the below code 
+
+
+services:
+  app:
+    build: .
+    container_name: express-app
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/mydatabase
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+volumes:
+  mongo-data:
+
+strep 4: - check if the previous any docker is ruuning to stop >> docker stop node-web-container node-web-multi
+
+Step 5 :- Execute the main Docker Compose command : >>docker compose up --build -d
+
+>> docker compose ps  
+
+>> docker compose logs app
+
+>> open this link http://localhost:8081
+
+----------------------------------------------------------------------------------------------------------------
+
+Practical 6:- To dockerize a Flask and ExpressJs application using Docker Compose
+
+Follow these steps in order.
+
+Step 1: Create project folders
+mkdir Practical6
+cd Practical6
+mkdir docker-flask docker-express
+
+Step 2: Create Flask application
+
+Inside docker-flask, 
+create three files:  app.py , Dockerfile ,  requirements.txt
+
+paste the code for  app.py
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    return "Hello Flask from docker!"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
+
+Inside the same docker-flask folder,
+
+create: requirements.txt
+
+inside the file paste 
+
+>> Flask==2.3.3
+
+Create a Dockerfile Inside the docker-flask folder 
+
+Paste the below code 
+
+FROM python:3.11-slim
+WORKDIR /usr/src/app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["python", "app.py"]
+
+
+Step 3: Create Express application
+Inside docker-express, 
+
+Open the terminal inside this folder and run:- 
+
+>> npm init -y
+>> npm install express
+
+# Create app.js:
+
+const express = require("express");
+const app = express();
+const port = 3000;
+app.get("/", (req, res) => {
+    res.send("Hello Express from docker!");
+});
+app.listen(port, "0.0.0.0", () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+
+# Create Dockerfile: paste 
+
+FROM node:20-alpine
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["node", "app.js"]
+
+
+# Step 4: Create docker-compose.yml
+
+Go back to your main Practical6 folder.
+
+Inside the main Practical6 folder:
+
+Create a file named:
+
+Paste the following code: docker-compose.yml
+
+paste the code :- 
+
+services:
+  flask-app:
+    build:
+      context: ./docker-flask
+    container_name: flask-app
+    ports:
+      - "5000:5000"
+
+  express-app:
+    build:
+      context: ./docker-express
+    container_name: express-app
+    ports:
+      - "3000:3000"
+
+
+Step 5: Build Docker images
+
+Open the terminal in the main Practical6 folder. 
+
+Execute:
+ >> docker compose build
+
+
+Step 6: Start both containers
+
+Now execute: 
+>>docker compose up -d
+
+
+Step 7: Check containers
+
+Execute: 
+>>docker compose ps
+
+
+Step 8: Test in browser
+
+Flask application
+
+Open your browser.
+Enter: 
+http://localhost:5000
+
+Expected: Hello Flask from docker!
+
+14. Test the Express.js application
+
+Open another browser tab.
+Enter:
+http://localhost:3000
+
+Expected: Hello Express from docker!
+
+Step 9: Stop containers
+docker compose down
+Important: Keep Docker Desktop running throughout the practical. Run all Docker Compose commands from the main Practical6 folder.
+
+
+>> open docker and check 
