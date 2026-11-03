@@ -837,3 +837,1516 @@ Amount: 70
 
 Practical 5(A): Smart Contracts Basics – Set and Get Messages
 
+Step 1: Create the file
+1. Open Remix IDE.
+2. In the File Explorer, create a new file.
+3. Name it HelloWorld.sol.
+4. Paste the Solidity code.
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.2;
+
+contract HelloWorld {
+
+    string message;
+
+    constructor(string memory newMessage) {
+        message = newMessage;
+    }
+
+    function setMessage(string memory newMessage) public {
+        message = newMessage;
+    }
+
+    function getMessage() public view returns (string memory) {
+        return message;
+    }
+}
+
+
+Step 2: Compile the contract
+1. Open the Solidity Compiler tab.
+2. Select compiler version 0.8.2 or a compatible 0.8.x version.
+3. Click Compile HelloWorld.sol.
+4. Check that compilation succeeds.
+
+Step 3: Deploy the contract
+1. Open the Deploy & Run Transactions tab.
+2. Select Environment: Remix VM.
+3. Select contract: HelloWorld.
+4. In the constructor input, enter:
+"Hello Blockchain"
+
+5. Click Deploy.
+
+Step 4: Test the functions
+
+After deployment, expand the HelloWorld contract.
+- Click getMessage to retrieve Hello Blockchain.
+- Enter "Welcome to Solidity" in the setMessage input and click it.
+- Click getMessage again. It should now return Welcome to Solidity.
+
+--------------------------------------------------------------------------------------------------
+
+Practical 5(B): Calculator Functions in Solidity
+
+2. Create the Solidity file
+Create a new file named Calculator.sol in Remix IDE.
+
+Copy this complete code from your manual, with formatting corrected:
+
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract N {
+
+    uint public na;
+    uint public nb;
+
+    constructor(uint _na, uint _nb) public {
+        na = _na;
+        nb = _nb;
+    }
+
+    function add() public view returns (uint) {
+        return na + nb;
+    }
+
+    function sub() public view returns (uint) {
+        require(na >= nb, "Subtraction results in negative value");
+        return na - nb;
+    }
+
+    function mul() public view returns (uint) {
+        return na * nb;
+    }
+
+    function div() public view returns (uint) {
+        require(nb != 0, "Division by zero is not allowed");
+        return na / nb;
+    }
+
+    function getAllResults() public view returns (uint, uint, uint, uint) {
+        uint sum = na + nb;
+        uint diff = na >= nb ? na - nb : 0;
+        uint prod = na * nb;
+        uint quotient = nb != 0 ? na / nb : 0;
+
+        return (sum, diff, prod, quotient);
+    }
+
+    function setValues(uint _na, uint _nb) public {
+        na = _na;
+        nb = _nb;
+    }
+}
+
+
+4. Compile the contract
+1. Open the Solidity Compiler tab in Remix.
+2. Select compiler version 0.5.17.
+3. Click Compile Calculator.sol.
+4. Check for successful compilation.
+
+5. Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Environment: Remix VM.
+3. Select contract: N.
+4. Enter the constructor values:
+Constructor inputs
+First number (_na)   20
+Second number (_nb)  10
+
+5. Click Deploy.
+
+6. Test the functions
+After deployment, expand the contract and click each function.
+
+Function	Expected result
+add()	30
+sub()	10
+mul()	200
+div()	2
+getAllResults()	30, 10, 200, 2
+
+You can also test setValues() with 50 and 5. Then call the other functions again to see the updated results.
+
+-------------------------------------------------------------------------------------------------------------------
+
+Practical 5(C): Factorial Using Solidity
+
+Step 1: Open Remix IDE
+1. Open https://remix.ethereum.org/
+
+2. In the File Explorer, create a new file named Factorial.sol.
+Step 2: Write the Solidity code
+Copy the complete code below:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract f {
+    uint public a;
+
+    constructor(uint _a) public {
+        a = _a;
+    }
+
+    function fact() public view returns (uint256) {
+        uint256 r = 1;
+
+        for (uint256 i = 1; i <= a; i++) {
+            r *= i;
+        }
+
+        return r;
+    }
+}
+
+Step 3: Compile the contract
+1. Open the Solidity Compiler tab.
+2. Select compiler version 0.5.17.
+3. Click Compile Factorial.sol.
+4. Make sure compilation is successful.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM as the environment.
+3. Select contract f.
+4. In the constructor input, enter: 5
+
+5. Click Deploy.
+Step 5: Execute the function
+1. Under Deployed Contracts, expand contract f.
+2. Click the fact button.
+Expected output : 120
+
+Step 6: Understand the calculation
+Factorial means multiplying a number by all positive integers below it.
+
+For example:
+
+5! = 5 x 4 x 3 x 2 x 1 = 120
+
+
+The for loop performs this multiplication automatically.
+
+---------------------------------------------------------------------------------------------------
+
+Practical 5(D): Prime Number Check Using Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. In File Explorer, create a new file named Prime.sol.
+
+Step 2: Write the code
+Copy the complete code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Prime {
+    uint public a;
+
+    constructor(uint _a) public {
+        a = _a;
+    }
+
+    function checkPrime() public view returns (bool) {
+        if (a <= 1) {
+            return false;
+        }
+
+        for (uint i = 2; i < a; i++) {
+            if (a % i == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile Prime.sol.
+4. Check that compilation is successful.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select contract Prime.
+4. Enter 7 in the constructor input.
+5. Click Deploy.
+
+Step 5: Execute the function
+1. Expand the deployed Prime contract.
+2. Click checkPrime.
+Expected output for 7 : true
+
+Try deploying again with 8. The expected result is: false
+
+-----------------------------------------------------------------------------------------------
+
+Practical 5(E): Odd or Even Number Using Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. In File Explorer, create a new file named EvenOdd.sol.
+
+Step 2: Write the code
+Copy the following code from your practical manual:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract EvenOddCHeck {
+    uint public a;
+
+    constructor(uint _a) public {
+        a = _a;
+    }
+
+    function isEven() public view returns (string memory) {
+        if (a % 2 == 0) {
+            return "Number is even";
+        } else {
+            return "Number is odd";
+        }
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile EvenOdd.sol.
+4. Confirm that compilation is successful.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select contract EvenOddCHeck.
+4. Enter 10 in the constructor input.
+5. Click Deploy.
+
+Step 5: Execute the function
+1. Expand the deployed contract.
+2. Click the isEven button.
+Expected output
+Number is even
+
+Try deploying again with 7.
+
+Expected output: Number is odd
+
+--------------------------------------------------------------------------------------------------
+
+Practical 5(F): Weekday Number Using Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. In File Explorer, create a new file named Weekday.sol.
+
+Step 2: Write the code
+Copy the complete code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Weekday {
+
+    function getWeekday(uint8 day)
+        public
+        pure
+        returns (string memory)
+    {
+        if (day == 1) {
+            return "Monday";
+        } else if (day == 2) {
+            return "Tuesday";
+        } else if (day == 3) {
+            return "Wednesday";
+        } else if (day == 4) {
+            return "Thursday";
+        } else if (day == 5) {
+            return "Friday";
+        } else if (day == 6) {
+            return "Saturday";
+        } else if (day == 7) {
+            return "Sunday";
+        } else {
+            return "Invalid input";
+        }
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile Weekday.sol.
+4. Check that compilation is successful.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select contract Weekday.
+4. Click Deploy.
+There is no constructor input for this contract.
+
+Step 5: Execute the function
+1. Expand the deployed Weekday contract.
+2. Find the getWeekday function.
+3. Enter a number and click the button.
+
+---------------------------------------------------------------------------------------------------
+
+Practical 5(G): Structure in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. In File Explorer, create a new file named Structure.sol.
+
+Step 2: Write the code
+Copy the complete code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract SimpleStruct {
+
+    struct Person {
+        string name;
+        uint age;
+    }
+
+    Person public person;
+
+    function setPerson(string memory _name, uint _age) public {
+        person.name = _name;
+        person.age = _age;
+    }
+
+    function getPerson() public view returns (string memory, uint) {
+        return (person.name, person.age);
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile Structure.sol.
+4. Confirm successful compilation.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select contract SimpleStruct.
+4. Click Deploy.
+No constructor input is required.
+
+Step 5: Enter person's details
+1. Expand the deployed SimpleStruct contract.
+2. Find the setPerson function.
+3. Enter the following values:
+
+Field	Value
+_name	"Rahul"
+_age	22
+
+4. Click setPerson.
+
+
+Step 6: Retrieve person's details
+1. Find the getPerson function.
+2. Click getPerson.
+
+Expected output
+0: string: Rahul
+1: uint256: 22
+
+----------------------------------------------------------------------------------------------------------------
+
+Practical 5(H): Array in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. In File Explorer, create a new file named Array.sol.
+
+Step 2: Write the code
+Copy the complete code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract SimpleArray {
+
+    uint[] public numbers;
+
+    function addNumber(uint _number) public {
+        numbers.push(_number);
+    }
+
+    function getNumbers() public view returns (uint[] memory) {
+        return numbers;
+    }
+
+    function getNumberCount() public view returns (uint) {
+        return numbers.length;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile Array.sol.
+4. Confirm successful compilation.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select contract SimpleArray.
+4. Click Deploy.
+No constructor input is required.
+
+Step 5: Add numbers to the array
+1. Expand the deployed SimpleArray contract.
+2. Find the addNumber function.
+3. Enter 10 and click the button.
+4. Repeat for 20, 30, and 40.
+Your array now contains four numbers.
+
+Step 6: Retrieve the numbers
+Click getNumbers.
+Expected output
+10, 20, 30, 40
+
+Step 7: Count the numbers
+Click getNumberCount.
+
+Expected output: 4
+
+----------------------------------------------------------------------------------------------
+
+Practical 6.1: Single Inheritance
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named SingleInheritance.sol.
+
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Contract_A {
+    uint256 value;
+
+    constructor(uint256 n) public {
+        value = n;
+    }
+
+    function incrementValue(uint256 X) public {
+        value += X;
+    }
+}
+
+contract Contract_B is Contract_A(22) {
+
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile SingleInheritance.sol.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. In the contract dropdown, select Contract_B.
+4. Click Deploy.
+There is no constructor input because Contract_B passes the value 22 to the parent contract.
+
+Step 5: Execute the functions
+Expand the deployed Contract_B.
+
+First, click getValue.
+
+Expected output:
+22
+
+
+Next, test incrementValue.
+1. Enter 10.
+2. Click incrementValue.
+3. Click getValue again.
+Expected output:
+32
+
+------------------------------------------------------------------------------------------------
+
+Practical 6.2: Multilevel Inheritance in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named MultilevelInheritance.sol.
+
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Contract_A {
+    uint256 value;
+
+    constructor(uint256 n) public {
+        value = n;
+    }
+
+    function incrementValue(uint256 x) public {
+        value += x;
+    }
+}
+
+contract Contract_B is Contract_A(22) {
+    function decrementValue(uint256 x) public {
+        value -= x;
+    }
+}
+
+contract Contract_C is Contract_B {
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+}
+
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile MultilevelInheritance.sol.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select Contract_C from the contract dropdown.
+4. Click Deploy.
+No constructor input is required because the value 22 is passed through Contract_B.
+
+Step 5: Execute the functions
+Expand the deployed Contract_C.
+
+Test 1: Get initial value
+
+Click getValue.
+
+Expected output:
+22
+
+
+Test 2: Increment value
+1. Enter 10 in incrementValue.
+2. Click the button.
+3. Click getValue.
+Expected output:
+32
+
+
+Test 3: Decrement value
+1. Enter 5 in decrementValue.
+2. Click the button.
+3. Click getValue.
+Expected output:
+27
+
+----------------------------------------------------------------------------------------------------
+
+Practical 6.3: Hierarchical Inheritance in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named HierarchicalInheritance.sol.
+
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Contract_A {
+    uint256 value;
+
+    constructor(uint256 n) public {
+        value = n;
+    }
+}
+
+contract Contract_B is Contract_A(22) {
+    function incrementValue(uint256 x) public {
+        value += x;
+    }
+
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+}
+
+contract Contract_C is Contract_A(25) {
+    function decrementValue(uint256 x) public {
+        value -= x;
+    }
+
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile HierarchicalInheritance.sol.
+
+Step 4: Deploy Contract_B
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select Contract_B from the dropdown.
+4. Click Deploy.
+
+Step 5: Test Contract_B
+1. Click getValue.
+
+Expected output:
+22
+
+Enter 10 in incrementValue and click it.
+Click getValue again.
+
+Expected output:
+32
+
+Step 6: Deploy Contract_C
+1. Select Contract_C from the contract dropdown.
+2. Click Deploy.
+3. Click getValue.
+
+Expected output:
+25
+
+4. Enter 5 in decrementValue and click it.
+5. Click getValue again.
+Expected output:
+20
+
+----------------------------------------------------------------------------
+
+Practical 6.4: Multiple Inheritance in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named MultipleInheritance.sol.
+
+Step 2: Write the complete code
+Copy the following code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Contract_A {
+    uint256 value;
+
+    constructor(uint256 n) public {
+        value = n;
+    }
+
+    function incrementValue(uint256 x) public {
+        value += x;
+    }
+}
+
+contract Contract_B is Contract_A {
+    function decrementValue(uint256 x) public {
+        value -= x;
+    }
+}
+
+contract Contract_C is Contract_A(25), Contract_B {
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile MultipleInheritance.sol.
+4. Confirm successful compilation.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select Contract_C from the contract dropdown.
+4. Click Deploy.
+
+Step 5: Execute the functions
+Expand the deployed Contract_C.
+
+Test 1: Get initial value
+Click getValue.
+Expected output:
+25
+
+Test 2: Increment value
+1. Enter 10 in incrementValue.
+2. Click the button.
+3. Click getValue.
+Expected output:
+35
+
+
+Test 3: Decrement value
+1. Enter 5 in decrementValue.
+2. Click the button.
+3. Click getValue.
+Expected output:
+30
+
+--------------------------------------------------------------------------------------------------
+
+Practical 6.5: Library Definition in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named Library.sol.
+
+Step 2: Write the complete code
+Copy this code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+library lib {
+
+    function increment(uint val) public pure returns (uint) {
+        return val + 1;
+    }
+
+    function decrement(uint val) public pure returns (uint) {
+        return val - 1;
+    }
+
+    function incrementByValue(uint val, uint x) public pure returns (uint) {
+        return val + x;
+    }
+
+    function decrementByValue(uint val, uint x) public pure returns (uint) {
+        return val - x;
+    }
+}
+
+Step 3: Compile the library
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile Library.sol.
+4. Confirm that compilation is successful.
+
+Step 4: Deploy the library
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select lib from the contract dropdown.
+4. Click Deploy.
+
+Step 5: Understand the functions
+Function	Example	Result
+increment(5)	5 + 1	6
+decrement(5)	5 - 1	4
+incrementByValue(5, 3)	5 + 3	8
+decrementByValue(5, 2)	5 - 2	3
+
+-------------------------------------------------------------------------------------------------
+
+Practical 6.6: Using a Library in Solidity
+
+Step 1: Create a new Solidity file
+1. Open Remix IDE.
+2. Keep your previous Library.sol file.
+3. Create another file named UseLibrary.sol.
+
+Step 2: Write the complete code
+Copy this code into UseLibrary.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+import "./Library.sol";
+
+contract useLibrary {
+
+    function testIncrement(uint userVal)
+        public pure returns (uint)
+    {
+        return lib.increment(userVal);
+    }
+
+    function testDecrement(uint userVal)
+        public pure returns (uint)
+    {
+        return lib.decrement(userVal);
+    }
+
+    function testIncrementByValue(uint userVal, uint x)
+        public pure returns (uint)
+    {
+        return lib.incrementByValue(userVal, x);
+    }
+
+    function testDecrementByValue(uint userVal, uint x)
+        public pure returns (uint)
+    {
+        return lib.decrementByValue(userVal, x);
+    }
+}
+
+Step 3: Compile the contracts
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Open UseLibrary.sol.
+4. Click Compile UseLibrary.sol.
+5. Check that there are no compilation errors.
+
+Step 4: Deploy the library
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select lib from the contract dropdown.
+4. Click Deploy.
+
+Step 5: Deploy the main contract
+1. Select useLibrary from the contract dropdown.
+2. Deploy it.
+3. If Remix asks you to link the library, select the deployed lib library address.
+
+Step 6: Execute the functions
+Expand the deployed useLibrary contract and test the following:
+Function	           Input	    Expected output
+testIncrement          	5              	6
+testDecrement	        5	            4
+testIncrementByValue	5, 3	        8
+testDecrementByValue	5, 2        	3
+
+----------------------------------------------------------------------------------------------------------
+
+Practical 6.7: Mapping in Solidity
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named Mapping.sol.
+
+Step 2: Write the complete code
+Copy this code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract mappingExample {
+
+    mapping(int => string) details;
+
+    function addDetails(int id, string memory name) public {
+        details[id] = name;
+    }
+
+    function updateDetails(int id, string memory name) public {
+        details[id] = name;
+    }
+
+    function getDetails(int id) public view returns (string memory) {
+        return details[id];
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select compiler version 0.5.17.
+3. Click Compile Mapping.sol.
+4. Confirm successful compilation.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select mappingExample.
+4. Click Deploy.
+No constructor input is required.
+
+Step 5: Add details
+Expand the deployed contract.
+
+Find addDetails and enter:
+Input	 Value
+id	      1
+name	"Rahul"
+
+Click addDetails.
+
+Repeat with:
+- ID: 2, Name: "Priya"
+- ID: 3, Name: "Amit"
+
+Step 6: Retrieve details
+Find getDetails.
+1. Enter ID 1.
+2. Click getDetails.
+Expected output  Rahul
+
+Try ID 2 and ID 3. You should get Priya and Amit.
+
+Step 7: Update details
+1. Find updateDetails.
+2. Enter ID 1.
+3. Enter name "Vijay".
+4. Click updateDetails.
+5. Call getDetails again with ID 1.
+Expected output:
+Vijay
+
+-----------------------------------------------------------------------------------------------------------------
+
+Practical 6.8.1: Modifier Without Argument (Admin Only)
+
+Step 1: Open Remix IDE
+1. Open https://remix.ethereum.org/
+2. Create a new file named ModifierWithoutArgument.sol.
+3. Select Solidity compiler version 0.5.17.
+
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract modifierWithoutArg {
+    address admin;
+
+    struct employee {
+        uint emp_id;
+        string emp_name;
+        uint age;
+    }
+
+    constructor() public {
+        admin = msg.sender;
+    }
+
+    modifier isAdmin {
+        require(admin == msg.sender, "Not authorized");
+        _;
+    }
+
+    employee e;
+
+    function enterDetails(
+        uint _empid,
+        string memory _empname,
+        uint _empage
+    )
+        public
+        isAdmin
+    {
+        e.emp_id = _empid;
+        e.emp_name = _empname;
+        e.age = _empage;
+    }
+
+    // Added getter to view the saved employee details
+    function getEmployee()
+        public
+        view
+        returns (uint, string memory, uint)
+    {
+        return (e.emp_id, e.emp_name, e.age);
+    }
+}    
+
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select version 0.5.17.
+3. Click Compile ModifierWithoutArgument.sol.
+4. Make sure there are no compilation errors.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM as the environment.
+3. Select modifierWithoutArg from the contract dropdown.
+4. Click Deploy.
+The account that deploys the contract becomes the admin.
+
+Step 5: Enter employee details
+Call enterDetails with these values:
+Input	    Value
+_empid	     101
+_empname	"Rahul"
+_empage	     22
+
+Click the function button. The transaction should succeed.
+
+Step 6: View the employee details
+Click getEmployee.
+
+Expected output:
+101
+Rahul
+22
+
+
+Step 7: Test admin access
+1. In the Account dropdown, select another account.
+2. Call enterDetails again with different details.
+3. The transaction should fail with:
+Not authorized
+
+
+This happens because the second account is not the admin.
+
+--------------------------------------------------------------------------------------------------------------
+
+Practical 6.8.2: Modifier With Argument (Experience Check)
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a new file named ModifierWithArgument.sol.
+3. Select compiler version 0.5.17.
+
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract modifierWithArg {
+
+    struct employee {
+        uint emp_id;
+        string emp_name;
+        uint age;
+    }
+
+    modifier isExperienced(uint exp) {
+        if (exp >= 5) {
+            _;
+        }
+        else {
+            revert("Must have a minimum of 5 years of experience");
+        }
+    }
+
+    employee e;
+
+    function enterDetails(
+        uint _empid,
+        string memory _empname,
+        uint _empage
+    )
+        public
+        isExperienced(2)
+    {
+        e.emp_id = _empid;
+        e.emp_name = _empname;
+        e.age = _empage;
+    }
+
+    // Added to view the stored employee details
+    function getEmployee()
+        public
+        view
+        returns (uint, string memory, uint)
+    {
+        return (e.emp_id, e.emp_name, e.age);
+    }
+}
+
+Step 3: Compile and deploy
+1. Open Solidity Compiler.
+2. Select version 0.5.17.
+3. Click Compile ModifierWithArgument.sol.
+4. Open Deploy & Run Transactions.
+5. Select Remix VM.
+6. Select modifierWithArg and click Deploy.
+
+Step 4: Test the function
+Enter these values in enterDetails:
+Input	        Value
+Employee ID    	101
+Employee Name	"Rahul"
+Age            	22
+
+Click the function.
+Expected: Transaction fails
+You should get this error:
+Must have a minimum of 5 years of experience
+
+
+Step 5: Correct the modifier argument and test again
+To see a successful result, change:
+isExperienced(2)
+
+to:
+
+isExperienced(5)
+
+Compile again and deploy the updated contract. Now call enterDetails with the same employee details.
+
+Click getEmployee.
+
+Expected output:
+101
+Rahul
+22
+
+-----------------------------------------------------------------------------------------------------
+
+Practical 6.8.3: Multiple Modifiers (Admin + Experience)
+
+Step 1: Create a Solidity file
+1. Open Remix IDE.
+2. Create a file named MultipleModifiers.sol.
+3. Select compiler version 0.5.17.
+
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract multiplemodifier {
+
+    address admin;
+
+    struct employee {
+        uint emp_id;
+        string emp_name;
+        uint age;
+    }
+
+    constructor() public {
+        admin = msg.sender;
+    }
+
+    modifier isAdmin {
+        require(admin == msg.sender, "Not authorized");
+        _;
+    }
+
+    modifier isExperienced(uint exp) {
+        if (exp >= 5) {
+            _;
+        }
+        else {
+            revert("Must have a minimum of 5 years of experience");
+        }
+    }
+
+    employee e;
+
+    function enterDetails(
+        uint _empid,
+        string memory _empname,
+        uint _empage
+    )
+        public
+        isAdmin
+        isExperienced(2)
+    {
+        e.emp_id = _empid;
+        e.emp_name = _empname;
+        e.age = _empage;
+    }
+
+    // Added to view the stored employee details
+    function getEmployee()
+        public
+        view
+        returns (uint, string memory, uint)
+    {
+        return (e.emp_id, e.emp_name, e.age);
+    }
+}
+
+Step 3: Compile and deploy
+1. Open Solidity Compiler.
+2. Select 0.5.17.
+3. Click Compile MultipleModifiers.sol.
+4. Open Deploy & Run Transactions.
+5. Select Remix VM.
+6. Select multiplemodifier.
+7. Click Deploy.
+The account that deploys the contract becomes the admin.
+
+Step 4: Test the manual's code
+Call enterDetails with:
+Input	Value
+Employee ID	101
+Employee Name	"Rahul"
+Age	22
+
+Expected: Transaction fails
+Error:
+Must have a minimum of 5 years of experience
+
+
+The reason is that isExperienced(2) does not satisfy exp >= 5.
+
+Step 5: Correct the experience condition
+Change:
+isExperienced(2)
+
+to:
+
+isExperienced(5)
+
+Compile the contract again and deploy the updated version.
+
+Now call enterDetails using the same values.
+
+Click getEmployee.
+
+Expected output:
+101
+Rahul
+22
+
+Step 6: Test admin access
+1. Change the selected account in Remix.
+2. Call enterDetails again.
+3. The transaction should fail with:
+Not authorized
+
+============================================================================================================================
+
+Practical 6 7.1: Struct Example in Solidity
+
+Step 1: Open Remix IDE
+1. Open https://remix.ethereum.org/
+2. Create a new file named StructExample.sol.
+3. Select compiler version 0.5.17.
+
+Step 2: Write the code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract StructExample {
+
+    struct Employee {
+        uint emp_id;
+        string emp_name;
+        uint age;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select version 0.5.17.
+3. Click Compile StructExample.sol.
+4. Check that compilation is successful.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select StructExample.
+4. Click Deploy.
+
+Step 5: Understand the code
+- struct Employee: Creates a structure named Employee.
+- uint emp_id: Stores the employee ID.
+- string emp_name: Stores the employee name.
+- uint age: Stores the employee's age.
+
+Example of the structure:
+Field	         Example value
+Employee ID        	101
+Employee Name   	Rahul
+Age             	22
+
+------------------------------------------------------------------------------------------------------
+
+Practical 6 7.2: Dynamic Array Example in Solidity
+
+Step 1: Open Remix IDE
+1. Open https://remix.ethereum.org/
+2. Create a new file named DynamicArray.sol.
+3. Select compiler version 0.5.17.
+Step 2: Write the complete code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract ArrayExample {
+
+    uint[] dynamicArray;
+
+    uint[3] staticArray = [uint(1), 2, 3];
+
+    function addValue(uint value) public {
+        dynamicArray.push(value);
+    }
+
+    function getLength() public view returns (uint) {
+        return dynamicArray.length;
+    }
+
+    function getArray() public view returns (uint[] memory) {
+        return dynamicArray;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select version 0.5.17.
+3. Click Compile DynamicArray.sol.
+4. Make sure there are no errors.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select ArrayExample.
+4. Click Deploy.
+No constructor values are required.
+
+Step 5: Add values to the array
+Call addValue with these values, one at a time:
+Function input  	Value
+First call	         10
+Second call     	 20
+Third call	         30
+Fourth call      	 40
+
+Click the addValue button after entering each number.
+Step 6: Check the array length
+Click getLength.
+
+Expected output:
+4
+
+Step 7: Display the array
+Click getArray.
+
+Expected output:
+[10, 20, 30, 40]
+
+-----------------------------------------------------------------------------------------------------------------
+
+Practical 6 7.3: Static Array Example in Solidity
+
+Step 1: Open Remix IDE
+1. Open https://remix.ethereum.org/
+2. Create a new file named StaticArray.sol.
+3. Select compiler version 0.5.17.
+
+Step 2: Write the code
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract StaticArrayExample {
+
+    function checkArray() public pure returns (uint) {
+
+        uint[3] memory c = [uint(1), 2, 3];
+
+        assert(c.length == 3);
+
+        return c.length;
+    }
+}
+
+Step 3: Compile the contract
+1. Open Solidity Compiler.
+2. Select version 0.5.17.
+3. Click Compile StaticArray.sol.
+4. Check for compilation errors.
+
+Step 4: Deploy the contract
+1. Open Deploy & Run Transactions.
+2. Select Remix VM.
+3. Select StaticArrayExample.
+4. Click Deploy.
+No constructor input is required.
+
+Step 5: Execute the function
+1. Find the checkArray button.
+2. Click it.
+3. Check the returned value.
+Expected output: 3
+
+--------------------------------------------------------------------------------------------------------------
+
+PRACTICAL 7: CRUD Operations on Student Structure
+
+Step 1: Create the Student CRUD smart contract
+Create a new file in Remix named StudentCRUD.sol.
+
+Use this complete code:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract StudentCRUD {
+
+    struct Student {
+        uint id;
+        string name;
+        uint age;
+        string course;
+    }
+
+    mapping(uint => Student) students;
+    mapping(uint => bool) studentExists;
+
+    // CREATE
+    function createStudent(
+        uint _id,
+        string memory _name,
+        uint _age,
+        string memory _course
+    ) public {
+        require(!studentExists[_id], "Student already exists");
+
+        students[_id] = Student(_id, _name, _age, _course);
+        studentExists[_id] = true;
+    }
+
+    // READ
+    function getStudent(uint _id)
+        public
+        view
+        returns (uint, string memory, uint, string memory)
+    {
+        require(studentExists[_id], "Student not found");
+
+        Student memory s = students[_id];
+
+        return (s.id, s.name, s.age, s.course);
+    }
+
+    // UPDATE
+    function updateStudent(
+        uint _id,
+        string memory _name,
+        uint _age,
+        string memory _course
+    ) public {
+        require(studentExists[_id], "Student not found");
+
+        students[_id].name = _name;
+        students[_id].age = _age;
+        students[_id].course = _course;
+    }
+
+    // DELETE
+    function deleteStudent(uint _id) public {
+        require(studentExists[_id], "Student not found");
+
+        delete students[_id];
+        studentExists[_id] = false;
+    }
+}
+
