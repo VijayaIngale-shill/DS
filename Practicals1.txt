@@ -2350,3 +2350,1694 @@ contract StudentCRUD {
     }
 }
 
+3. Compile the contract
+Open the Solidity Compiler tab.
+Select compiler version 0.5.17.
+Click Compile StudentCRUD.sol.
+Confirm that there are no compilation errors.
+
+4. Start Ganache
+1. Open Ganache.
+2. Select Quickstart or create a workspace.
+3. Wait for the local blockchain to start.
+4. Note these details from Ganache:
+Setting	    Typical value
+RPC URL  	http://127.0.0.1:7545
+Network ID	Often 5777
+Chain ID	Check your Ganache settings
+Accounts	Ganache-generated test accounts
+
+Your actual network ID and chain ID may differ. Use the values displayed by your Ganache instance.
+
+5. Connect Remix to Ganache and deploy
+This is the simplest way to deploy the contract to your local Ganache blockchain.
+1. Open Remix's Deploy & Run Transactions tab.
+2. Open the Environment dropdown.
+3. Select Custom - External HTTP Provider if available.
+4. Enter your Ganache RPC URL:
+http://127.0.0.1:7545
+5. Confirm the connection.
+6. Select StudentCRUD in the contract dropdown.
+7. Click Deploy.
+8. Confirm the deployment transaction.
+After deployment, copy the contract address shown in Remix. Keep it for the next step.
+
+If Remix does not offer the custom provider option in your current version, you can use a compatible wallet/provider connection instead.
+
+6. Connect MyEtherWallet (MEW)
+MEW's interface has changed over time, so the exact labels may differ from older practical manuals.
+
+The intended workflow is:
+1. Open MEW.
+2. Look for its network or custom-network connection settings.
+3. Enter the Ganache RPC endpoint and the chain ID shown by Ganache, if your MEW version supports custom networks.
+4. Connect using a Ganache test account through a supported wallet connection.
+5. Open the contract interaction feature, if available.
+6. Supply the deployed contract address and ABI exported from Remix.
+Important compatibility limitation: I cannot guarantee that the current MEW web interface supports direct connection to a local Ganache RPC or the old Deploy Contract workflow. If it does not, use Remix connected to Ganache for deployment and interaction. Do not substitute Ethereum Mainnet for Ganache.
+
+
+7. Perform CRUD operations
+Once the contract is deployed, use the functions below.
+A. CREATE: Add a student
+Call createStudent with:
+Input	Value
+_id   	1
+_name	"Rahul"
+_age	22
+_course	"MSc IT"
+
+Expected result: transaction succeeds and student details are stored.
+
+B. READ: Display student details
+Call getStudent:
+1
+
+Expected output:
+1
+Rahul
+22
+MSc IT
+
+C. UPDATE: Modify student details
+Call updateStudent:
+Input	Value
+_id	1
+_name	"Vijay"
+_age	23
+_course	"MSc Computer Science"
+
+Call getStudent(1) again.
+
+Expected output:
+1
+Vijay
+23
+MSc Computer Science
+
+D. DELETE: Remove student details
+Call:
+deleteStudent(1)
+
+Now try getStudent(1) again.
+Expected result:
+Student not found
+
+The record has been deleted.
+
+8. ABI: Required for MEW contract interaction
+In Remix:
+1. Open the Solidity Compiler tab.
+2. Find ABI under the compilation details.
+3. Click the copy button.
+4. Keep the ABI and deployed contract address ready.
+The ABI describes the contract's available functions and their inputs. MEW needs it to interact with an already deployed contract.
+
+9. Final output
+Your practical should demonstrate these four operations:
+CRUD    operation	    Function Expected result
+Create	createStudent()	Student  record added
+Read	getStudent()	Student  details displayed
+Update	updateStudent()	Student  details changed
+Delete	deleteStudent()	Student  record removed
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+Practical 8: Single-Node Blockchain with Flask API
+
+2. Install required libraries
+Open VS Code and create a folder named:
+Practical8
+
+
+Open its terminal using Terminal → New Terminal.
+
+Run:
+py -m pip install flask requests
+
+
+Wait for installation to finish.
+3. Create the Python file
+Inside the Practical8 folder, create:
+blockchain.py
+
+
+Paste the following complete code. It implements the blockchain and Flask API from the manual, with the endpoint definitions completed.
+Complete code for blockchain.py
+
+import datetime
+import hashlib
+import json
+from flask import Flask, jsonify, request
+import requests
+from urllib.parse import urlparse
+
+
+class Blockchain:
+
+    def __init__(self):
+        self.chain = []
+        self.transactions = []
+        self.create_block(proof=1, previous_hash=0)
+        self.nodes = set()
+
+    def create_block(self, proof, previous_hash):
+        block = {
+            'index': len(self.chain) + 1,
+            'timestamp': str(datetime.datetime.now()),
+            'proof': proof,
+            'previous_hash': previous_hash,
+            'transaction': self.transactions
+        }
+
+        self.transactions = []
+        self.chain.append(block)
+
+        return block
+
+    def get_previous_block(self):
+        return self.chain[-1]
+
+    def proof_of_work(self, previous_proof):
+        new_proof = 1
+        check_proof = False
+
+        while check_proof is False:
+            hash_value = hashlib.sha256(
+                str(new_proof ** 2 - previous_proof ** 2).encode()
+            ).hexdigest()
+
+            if hash_value[:5] == '00000':
+                check_proof = True
+            else:
+                new_proof += 1
+
+        return new_proof
+
+    def hash(self, block):
+        encoded_block = json.dumps(
+            block,
+            sort_keys=True
+        ).encode()
+
+        return hashlib.sha256(encoded_block).hexdigest()
+
+    def is_chain_valid(self, chain):
+        previous_block = chain[0]
+        block_index = 1
+
+        while block_index < len(chain):
+            block = chain[block_index]
+
+            if block['previous_hash'] != self.hash(previous_block):
+                return False
+
+            previous_proof = previous_block['proof']
+            new_proof = block['proof']
+
+            hash_value = hashlib.sha256(
+                str(new_proof ** 2 - previous_proof ** 2).encode()
+            ).hexdigest()
+
+            if hash_value[:5] != '00000':
+                return False
+
+            previous_block = block
+            block_index += 1
+
+        return True
+
+    def add_transaction(self, sender, receiver, amount):
+        self.transactions.append({
+            'sender': sender,
+            'receiver': receiver,
+            'amount': amount
+        })
+
+        previous_block = self.get_previous_block()
+
+        return previous_block['index'] + 1
+
+    def add_node(self, address):
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)
+
+    def replace_chain(self):
+        network = self.nodes
+        max_length = len(self.chain)
+        longest_chain = None
+
+        for node in network:
+            response = requests.get(
+                f'http://{node}/get_chain',
+                timeout=5
+            )
+
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                if length > max_length and self.is_chain_valid(chain):
+                    max_length = length
+                    longest_chain = chain
+
+        if longest_chain:
+            self.chain = longest_chain
+            return True
+
+        return False
+
+
+# Flask application
+app = Flask(__name__)
+
+blockchain = Blockchain()
+
+
+@app.route('/mine_block', methods=['GET'])
+def mine_block():
+
+    previous_block = blockchain.get_previous_block()
+    previous_proof = previous_block['proof']
+
+    proof = blockchain.proof_of_work(previous_proof)
+    previous_hash = blockchain.hash(previous_block)
+
+    block = blockchain.create_block(proof, previous_hash)
+
+    response = {
+        'message': 'block is mined',
+        'index': block['index'],
+        'timestamp': block['timestamp'],
+        'proof': block['proof'],
+        'previous_hash': block['previous_hash']
+    }
+
+    return jsonify(response), 200
+
+
+@app.route('/get_chain', methods=['GET'])
+def get_chain():
+
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
+    }
+
+    return jsonify(response), 200
+
+
+@app.route('/is_valid', methods=['GET'])
+def is_valid():
+
+    valid = blockchain.is_chain_valid(blockchain.chain)
+
+    if valid:
+        response = {'message': 'Your chain is validated'}
+    else:
+        response = {'message': 'Your chain is not valid'}
+
+    return jsonify(response), 200
+
+
+@app.route('/add_transaction', methods=['POST'])
+def add_transaction():
+
+    data = request.get_json()
+
+    transaction_keys = ['sender', 'receiver', 'amount']
+
+    if not data or not all(key in data for key in transaction_keys):
+        return 'Some elements are missing', 400
+
+    index = blockchain.add_transaction(
+        data['sender'],
+        data['receiver'],
+        data['amount']
+    )
+
+    response = {
+        'Message': f'The transaction is added to block {index}'
+    }
+
+    return jsonify(response), 201
+
+
+@app.route('/connect_nodes', methods=['POST'])
+def connect_nodes():
+
+    data = request.get_json()
+    nodes = data.get('nodes') if data else None
+
+    if nodes is None:
+        return 'No Nodes', 400
+
+    for node in nodes:
+        blockchain.add_node(node)
+
+    response = {
+        'message': 'all nodes are now connected',
+        'Total nodes': list(blockchain.nodes)
+    }
+
+    return jsonify(response), 201
+
+
+@app.route('/replace_chain', methods=['GET'])
+def replace_chain():
+
+    is_chain_replace = blockchain.replace_chain()
+
+    if is_chain_replace:
+        response = {
+            'message': 'chain replaced',
+            'new_chain': blockchain.chain
+        }
+    else:
+        response = {
+            'message': 'chain not replaced',
+            'new_chain': blockchain.chain
+        }
+
+    return jsonify(response), 200
+
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=5001, debug=False)
+
+
+4. Run the blockchain
+In the VS Code terminal, execute:
+py blockchain.py
+
+Expected terminal output:
+ * Running on http://127.0.0.1:5001
+
+Keep this terminal running. Do not close it while testing the API.
+
+
+5. Test using Postman
+Open Postman. You can download it from Postman downloads
+
+Test 1: Get the blockchain
+- Method: GET
+- URL:  
+http://127.0.0.1:5001/get_chain
+
+Click Send.
+
+Expected response: a blockchain containing the Genesis Block, with length 1.
+
+Test 2: Add a transaction
+- Method: POST
+- URL:
+http://127.0.0.1:5001/add_transaction
+
+Select Body → raw → JSON and enter:
+{
+    "sender": "Rahul",
+    "receiver": "Vijay",
+    "amount": 100
+}
+
+
+Click Send.
+
+Expected response:
+{
+    "Message": "The transaction is added to block 2"
+}
+
+Test 3: Mine a block
+- Method: GET
+- URL:
+http://127.0.0.1:5001/mine_block
+
+Click Send.
+The application performs Proof of Work and creates a new block containing the pending transaction.
+Block mined
+
+Test 4: Get the updated blockchain
+- Method: GET
+- URL:
+http://127.0.0.1:5001/get_chain
+
+Click Send.
+You should now see two blocks: the Genesis Block and the newly mined block containing your transaction.
+
+Test 5: Validate the blockchain
+- Method: GET
+- URL:
+http://127.0.0.1:5001/is_valid
+
+Expected response:
+{
+    "message": "Your chain is validated"
+}
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Practical 9: Two-Node Blockchain Using Flask API
+
+We'll perform the practical in the correct order: first execute Practical 9a, then Practical 9b. Follow the steps from the beginning.
+
+Part A: Run pract9a.py
+
+Step 1: Open the project folder
+1.	Open VS Code.
+2.	Select File → Open Folder.
+3.	Open your Blockchain Exam folder.
+4.	Make sure both Python files are inside it.
+
+Your folder should look like this:
+Blockchain Exam
+│
+├── pract9a.py
+└── pract9b.py
+
+Step 2: Install the required libraries
+Open VS Code terminal:
+Terminal → New Terminal
+Execute:
+>> py -m pip install flask requests
+
+Wait until installation is completed.
+You only need to install these libraries once.
+
+Step 3: create a file pract9a.py
+paste the code 
+
+import datetime
+import hashlib
+import json
+from flask import Flask, jsonify, request
+import requests
+from uuid import uuid4
+from urllib.parse import urlparse
+
+
+class Blockchain:
+
+    def __init__(self):
+        self.chain = []
+        self.transactions = []
+
+        self.create_block(proof=1, previous_hash=0)
+
+        self.nodes = set()
+
+    def create_block(self, proof, previous_hash):
+        block = {
+            'index': len(self.chain) + 1,
+            'timestamp': str(datetime.datetime.now()),
+            'proof': proof,
+            'previous_hash': previous_hash,
+            'transaction': self.transactions
+        }
+
+        self.transactions = []
+        self.chain.append(block)
+
+        return block
+
+    def get_previous_block(self):
+        return self.chain[-1]
+
+    def proof_of_work(self, previous_proof):
+        new_proof = 1
+        check_proof = False
+
+        while check_proof is False:
+
+            hash_value = hashlib.sha256(
+                str(new_proof**2 - previous_proof**2).encode()
+            ).hexdigest()
+
+            if hash_value[:5] == '00000':
+                check_proof = True
+            else:
+                new_proof += 1
+
+        return new_proof
+
+    def hash(self, block):
+        encoded_block = json.dumps(
+            block,
+            sort_keys=True
+        ).encode()
+
+        return hashlib.sha256(encoded_block).hexdigest()
+
+    def is_chain_valid(self, chain):
+        previous_block = chain[0]
+        block_index = 1
+
+        while block_index < len(chain):
+
+            block = chain[block_index]
+
+        
+            if block['previous_hash'] != self.hash(previous_block):
+                return False
+
+            previous_proof = previous_block['proof']
+            new_proof = block['proof']
+
+            hash_value = hashlib.sha256(
+                str(new_proof**2 - previous_proof**2).encode()
+            ).hexdigest()
+
+            if hash_value[:5] != '00000':
+                return False
+
+            previous_block = block
+            block_index += 1
+
+        return True
+
+    def add_transaction(self, sender, receiver, amount):
+
+        self.transactions.append({
+            'sender': sender,
+            'receiver': receiver,
+            'amount': amount
+        })
+
+        previous_block = self.get_previous_block()
+
+        return previous_block['index'] + 1
+
+    def add_node(self, address):
+
+        parsed_url = urlparse(address)
+
+        self.nodes.add(parsed_url.netloc)
+
+    def replace_chain(self):
+
+        network = self.nodes
+        max_length = len(self.chain)
+        longest_chain = None
+
+        for node in network:
+
+            response = requests.get(
+                f'http://{node}/get_chain'
+            )
+
+            if response.status_code == 200:
+
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                if length > max_length and self.is_chain_valid(chain):
+
+                    max_length = length
+                    longest_chain = chain
+
+        if longest_chain:
+            self.chain = longest_chain
+            return True
+
+        return False
+
+
+app = Flask(__name__)
+
+blockchain = Blockchain()
+
+
+@app.route('/mine_block', methods=['GET'])
+def mine_block():
+
+    previous_block = blockchain.get_previous_block()
+
+    previous_proof = previous_block['proof']
+
+    proof = blockchain.proof_of_work(previous_proof)
+
+    previous_hash = blockchain.hash(previous_block)
+
+    block = blockchain.create_block(
+        proof,
+        previous_hash
+    )
+
+    response = {
+        'message': 'Block is mined',
+        'index': block['index'],
+        'timestamp': block['timestamp'],
+        'proof': block['proof'],
+        'previous_hash': block['previous_hash']
+    }
+
+    return jsonify(response), 200
+
+
+@app.route('/get_chain', methods=['GET'])
+def get_chain():
+
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
+    }
+
+    return jsonify(response), 200
+
+@app.route('/is_valid', methods=['GET'])
+def is_valid():
+
+    valid = blockchain.is_chain_valid(
+        blockchain.chain
+    )
+
+    if valid:
+        response = {
+            'message': 'Your chain is valid'
+        }
+    else:
+        response = {
+            'message': 'Your chain is not valid'
+        }
+
+    return jsonify(response), 200
+
+
+@app.route('/add_transaction', methods=['POST'])
+def add_transaction():
+
+    data = request.get_json()
+
+    transaction_keys = [
+        'sender',
+        'receiver',
+        'amount'
+    ]
+
+    if not all(key in data for key in transaction_keys):
+        return 'Some elements are missing', 400
+
+    index = blockchain.add_transaction(
+        data['sender'],
+        data['receiver'],
+        data['amount']
+    )
+
+    response = {
+        'Message': f'The transaction is added to block {index}'
+    }
+
+    return jsonify(response), 201
+
+
+@app.route('/connect_nodes', methods=['POST'])
+def connect_nodes():
+
+    data = request.get_json()
+
+    nodes = data.get('nodes')
+
+    print(nodes)
+
+    if nodes is None:
+        return 'No Nodes', 400
+
+    for node in nodes:
+        blockchain.add_node(node)
+
+    response = {
+        'message': 'All nodes are now connected',
+        'Total nodes': list(blockchain.nodes)
+    }
+
+    return jsonify(response), 201
+
+@app.route('/replace_chain', methods=['GET'])
+def replace_chain():
+
+    is_chain_replaced = blockchain.replace_chain()
+
+    if is_chain_replaced:
+
+        response = {
+            'message': 'Chain replaced',
+            'new_chain': blockchain.chain
+        }
+
+    else:
+
+        response = {
+            'message': 'Chain not replaced',
+            'new_chain': blockchain.chain
+        }
+
+    return jsonify(response), 201
+
+
+app.run(
+    host='0.0.0.0',
+    port=5001
+)
+
+Step 4: Run the first program
+In the VS Code terminal, execute:
+py "pract9a.py"
+
+Expected output:
+ * Serving Flask app
+ * Debug mode: off
+ * Running on all addresses
+ * Running on http://127.0.0.1:5001
+Node 1 started
+Important: Do not close this terminal. Keep the program running.
+
+Step 5: Check Node 1 in the browser
+Open Chrome and enter:
+http://127.0.0.1:5001/get_chain
+
+You should see a JSON response similar to:
+{
+    "chain": [
+        {
+            "index": 1,
+            "proof": 1,
+            "previous_hash": 0,
+            "transaction": []
+        }
+    ],
+    "length": 1
+}
+
+This confirms that Node 1 is working and its Genesis Block has been created.
+Do not open only http://127.0.0.1:5001. Your program does not define a homepage, so that URL returns 404. This is normal.
+
+Step 6: Open Postman
+Open Postman and create a new HTTP request.
+
+Step 7: Get the blockchain
+Set:
+•	Method: GET
+•	URL:
+http://127.0.0.1:5001/get_chain
+Click Send.
+Expected result:
+{
+    "length": 1
+}
+
+Step 8: Add the first transaction
+Change the method to POST.
+URL:
+http://127.0.0.1:5001/add_transaction
+
+Select:
+Body → raw → JSON
+Enter:
+{
+    "sender": "Rahul",
+    "receiver": "Vijay",
+    "amount": 100
+}
+
+Click Send.
+
+Expected response:
+{
+    "Message": "The transaction is added to block 2"
+}
+
+Step 9: Mine the first block
+Change the method to GET.
+URL:
+http://127.0.0.1:5001/mine_block
+Click Send.
+
+Wait for mining to complete.
+Expected response:
+{
+    "message": "Block is mined",
+    "index": 2
+}
+Your blockchain now contains two blocks.
+
+Step 10: Add the second transaction
+Method: POST
+URL:
+http://127.0.0.1:5001/add_transaction
+Body → raw → JSON:
+{
+    "sender": "Amit",
+    "receiver": "Priya",
+    "amount": 200
+}
+Click Send.
+
+Step 11: Mine the second block
+Method: GET
+URL:
+http://127.0.0.1:5001/mine_block
+Click Send.
+Your blockchain should now contain three blocks.
+
+Step 12: Check the final chain of Node 1
+Method: GET
+URL:
+http://127.0.0.1:5001/get_chain
+Click Send.
+Expected:
+{
+    "length": 3
+}
+
+Keep the first terminal running. Now we will start the second program.
+
+--------------------------------------------------------------------------------------------------
+
+Part B: Run pract9b.py
+
+create a fie name pract9b.py
+and paste the code 
+
+import datetime
+import hashlib
+import json
+from flask import Flask, jsonify, request
+import requests
+from urllib.parse import urlparse
+
+
+class Blockchain:
+
+    def __init__(self):
+        self.chain = []
+        self.transactions = []
+        self.create_block(proof=1, previous_hash=0)
+        self.nodes = set()
+
+    def create_block(self, proof, previous_hash):
+        block = {
+            'index': len(self.chain) + 1,
+            'timestamp': str(datetime.datetime.now()),
+            'proof': proof,
+            'previous_hash': previous_hash,
+            'transaction': self.transactions
+        }
+
+        self.transactions = []
+        self.chain.append(block)
+
+        return block
+
+    def get_previous_block(self):
+        return self.chain[-1]
+
+    def proof_of_work(self, previous_proof):
+        new_proof = 1
+        check_proof = False
+
+        while check_proof is False:
+
+            hash_value = hashlib.sha256(
+                str(new_proof**2 - previous_proof**2).encode()
+            ).hexdigest()
+
+            if hash_value[:5] == '00000':
+                check_proof = True
+            else:
+                new_proof += 1
+
+        return new_proof
+
+    def hash(self, block):
+        encoded_block = json.dumps(
+            block,
+            sort_keys=True
+        ).encode()
+
+        return hashlib.sha256(encoded_block).hexdigest()
+
+    def is_chain_valid(self, chain):
+
+        previous_block = chain[0]
+        block_index = 1
+
+        while block_index < len(chain):
+
+            block = chain[block_index]
+
+            if block['previous_hash'] != self.hash(previous_block):
+                return False
+
+            previous_proof = previous_block['proof']
+            new_proof = block['proof']
+
+            hash_value = hashlib.sha256(
+                str(new_proof**2 - previous_proof**2).encode()
+            ).hexdigest()
+
+            if hash_value[:5] != '00000':
+                return False
+
+            previous_block = block
+            block_index += 1
+
+        return True
+
+    def add_transaction(self, sender, receiver, amount):
+
+        self.transactions.append({
+            'sender': sender,
+            'receiver': receiver,
+            'amount': amount
+        })
+
+        previous_block = self.get_previous_block()
+
+        return previous_block['index'] + 1
+
+    def add_node(self, address):
+
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)
+
+    def replace_chain(self):
+
+        network = self.nodes
+        max_length = len(self.chain)
+        longest_chain = None
+
+        for node in network:
+
+            response = requests.get(
+                f'http://{node}/get_chain'
+            )
+
+            if response.status_code == 200:
+
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                if length > max_length and self.is_chain_valid(chain):
+                    max_length = length
+                    longest_chain = chain
+
+        if longest_chain:
+            self.chain = longest_chain
+            return True
+
+        return False
+
+
+app = Flask(__name__)
+
+blockchain = Blockchain()
+
+
+@app.route('/mine_block', methods=['GET'])
+def mine_block():
+
+    previous_block = blockchain.get_previous_block()
+
+    previous_proof = previous_block['proof']
+
+    proof = blockchain.proof_of_work(previous_proof)
+
+    previous_hash = blockchain.hash(previous_block)
+
+    block = blockchain.create_block(
+        proof,
+        previous_hash
+    )
+
+    response = {
+        'message': 'block is mined',
+        'index': block['index'],
+        'timestamp': block['timestamp'],
+        'proof': block['proof'],
+        'previous_hash': block['previous_hash']
+    }
+
+    return jsonify(response), 200
+
+
+@app.route('/get_chain', methods=['GET'])
+def get_chain():
+
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
+    }
+
+    return jsonify(response), 200
+
+
+@app.route('/is_valid', methods=['GET'])
+def is_valid():
+
+    valid = blockchain.is_chain_valid(
+        blockchain.chain
+    )
+
+    if valid:
+        response = {
+            'message': 'Your chain is validated'
+        }
+    else:
+        response = {
+            'message': 'Your chain is not valid'
+        }
+
+    return jsonify(response), 200
+
+
+@app.route('/add_transaction', methods=['POST'])
+def add_transaction():
+
+    data = request.get_json()
+
+    transaction_keys = [
+        'sender',
+        'receiver',
+        'amount'
+    ]
+
+    if not all(key in data for key in transaction_keys):
+        return 'Some elements are missing', 400
+
+    index = blockchain.add_transaction(
+        data['sender'],
+        data['receiver'],
+        data['amount']
+    )
+
+    response = {
+        'Message': f'The transaction is added to block {index}'
+    }
+
+    return jsonify(response), 201
+
+
+@app.route('/connect_nodes', methods=['POST'])
+def connect_nodes():
+
+    data = request.get_json()
+
+    nodes = data.get('nodes')
+
+    print(nodes)
+
+    if nodes is None:
+        return 'No Nodes', 400
+
+    for node in nodes:
+        blockchain.add_node(node)
+
+    response = {
+        'message': 'all nodes are now connected',
+        'Total nodes': list(blockchain.nodes)
+    }
+
+    return jsonify(response), 201
+
+
+@app.route('/replace_chain', methods=['GET'])
+def replace_chain():
+
+    is_chain_replace = blockchain.replace_chain()
+
+    if is_chain_replace:
+
+        response = {
+            'message': 'chain replaced',
+            'new_chain': blockchain.chain
+        }
+
+    else:
+
+        response = {
+            'message': 'chain not replaced',
+            'new_chain': blockchain.chain
+        }
+
+    return jsonify(response), 201
+
+
+app.run(host='0.0.0.0', port=5002)
+
+
+Step 13: Open a second VS Code terminal
+Do not stop the first program.
+1.	Go to the VS Code terminal panel.
+2.	Click the + button.
+3.	A second terminal will open.
+The + button to create a new terminal in VS Code has disappeared. How can I add it back? - Stack Overflow
+stackoverflow.com
+You should now have:
+•	Terminal 1: pract9a.py
+•	Terminal 2: Ready to run pract9b.py
+
+
+Step 14: Run the second program
+In the second terminal, execute:
+py "pract9b.py"
+Expected output:
+ * Serving Flask app
+ * Debug mode: off
+ * Running on http://127.0.0.1:5002
+Node 2 started
+Now both programs are running.
+Check your two terminals
+Running
+Terminal 1
+pract9a.py
+Port 5001
+Running
+Terminal 2
+pract9b.py
+Port 5002
+
+Step 15: Check Node 2
+Open this URL in Chrome:
+http://127.0.0.1:5002/get_chain
+Expected:
+{
+    "length": 1
+}
+Node 2 has its own Genesis Block. It does not yet contain Node 1's transactions.
+
+Step 16: Connect Node 1 and Node 2
+Now we will connect the two blockchain nodes.
+First, connect Node 1 to Node 2.
+In Postman:
+•	Method: POST
+•	URL:
+http://127.0.0.1:5001/connect_nodes
+Select Body → raw → JSON:
+{
+    "nodes": [
+        "http://127.0.0.1:5002"
+    ]
+}
+
+Click Send.
+
+Expected message:
+{
+    "message": "All nodes are now connected"
+}
+
+Next, connect Node 2 to Node 1.
+•	Method: POST
+•	URL:
+http://127.0.0.1:5002/connect_nodes
+Body → raw → JSON:
+{
+    "nodes": [
+        "http://127.0.0.1:5001"
+    ]
+}
+
+Click Send.
+
+Now both nodes know about each other.
+
+Step 17: Get the chain of Node 2
+Method: GET
+URL:
+http://127.0.0.1:5002/get_chain
+Click Send.
+Expected:
+{
+    "length": 1
+}
+Node 2 still has one block.
+
+Step 18: Replace the chain on Node 2
+This is the important synchronization step.
+Method: GET
+URL:
+http://127.0.0.1:5002/replace_chain
+
+Click Send.
+Expected response:
+{
+    "message": "Chain replaced"
+}
+Node 2 checks the other connected node, finds that Node 1 has a longer valid blockchain, and replaces its shorter chain.
+
+Step 19: Check Node 2 again
+Method: GET
+URL:
+http://127.0.0.1:5002/get_chain
+Expected:
+{
+    "length": 3
+}
+Node 2 now has three blocks.
+
+Step 20: Add a transaction on Node 2
+Method: POST
+URL:
+http://127.0.0.1:5002/add_transaction
+Body → raw → JSON:
+{
+    "sender": "Vijay",
+    "receiver": "Rahul",
+    "amount": 300
+}
+Click Send.
+
+Step 21: Mine a block on Node 2
+Method: GET
+URL:
+http://127.0.0.1:5002/mine_block
+Click Send.
+Wait for mining to complete.
+Node 2 should now have four blocks.
+
+Step 22: Check Node 2's blockchain
+Method: GET
+URL:
+http://127.0.0.1:5002/get_chain
+Expected:
+{
+    "length": 4
+}
+
+Step 23: Check Node 1's blockchain
+Method: GET
+URL:
+http://127.0.0.1:5001/get_chain
+Expected:
+{
+    "length": 3
+}
+Node 1 has not yet received Node 2's new block.
+
+Step 24: Replace the chain on Node 1
+Method: GET
+URL:
+http://127.0.0.1:5001/replace_chain
+Click Send.
+Expected response:
+{
+    "message": "Chain replaced"
+}
+Node 1 will now copy the longer valid blockchain from Node 2.
+
+Step 25: Final verification
+Open both URLs:
+•	Node 1 final blockchain
+•	Node 2 final blockchain
+Both should now show:
+{
+    "length": 4
+}
+Also check blockchain validity.
+Node 1:
+http://127.0.0.1:5001/is_valid
+Node 2:
+http://127.0.0.1:5002/is_valid
+Expected:
+{
+    "message": "Your chain is valid"
+}
+
+-------------------------------------------------------------------------------------------------------
+
+Practical 10: Simple DApp Using MetaMask and Solidity
+
+Part 1: Install MetaMask and create a wallet
+
+Step 1: Install MetaMask
+https://metamask.com/downloadMetaMask
+1.	Open Google Chrome.
+2.	Visit the MetaMask download page.
+3.	Select Install MetaMask for Chrome.
+4.	Chrome Web Store will open.
+5.	Click Add to Chrome.
+6.	Click Add extension.
+7.	Pin MetaMask to your Chrome toolbar.
+
+Step 2: Create a new wallet
+1.	Open MetaMask.
+2.	Select Create a new wallet.
+3.	Accept the terms and continue.
+4.	Create a password.
+5.	Confirm your password.
+6.	Complete the wallet setup.
+
+Step 3: Secure your Secret Recovery Phrase
+1.	MetaMask will display a Secret Recovery Phrase.
+2.	Write it down and store it securely offline.
+3.	Complete the phrase confirmation.
+4.	Finish wallet creation.
+Security: Never share your recovery phrase or private key with anyone, including in screenshots or chat. Do not use your personal wallet for this practical.
+
+
+Part 2: Create the smart contract in Remix IDE
+
+Step 4: Open Remix IDE
+Visit:
+Open Remix IDE
+1.	Open the File Explorer panel.
+2.	Create a new file.
+3.	Name it SimpleStorage.sol.
+
+Step 5: Write the Solidity code
+Your manual contains this SimpleStorage contract. It uses Solidity 0.8.x, with a small correction to the pragma syntax.
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleStorage {
+
+    uint storedData;
+
+    function set(uint x) public {
+        storedData = x;
+    }
+
+    function get() public view returns (uint) {
+        return storedData;
+    }
+}
+
+Step 6: Compile the contract
+1.	Open Solidity Compiler.
+2.	Select compiler version 0.8.20 (or another available 0.8.x version).
+3.	Click Compile SimpleStorage.sol.
+4.	Check that there are no errors.
+
+Step 7: Connect MetaMask to Remix
+1.	Open Deploy & Run Transactions.
+2.	Open the Environment dropdown.
+3.	Select Injected Provider - MetaMask.
+4.	MetaMask will ask you to connect your wallet.
+5.	Select your newly created test wallet and approve the connection.
+6.	Confirm that Remix displays the connected account.
+For this practical, use a test network supported by your wallet, not Ethereum Mainnet. You will need test ETH to pay deployment gas fees.
+
+Part 3: Deploy the smart contract
+
+Step 8: Select the test network
+For a beginner-friendly practical, you can use Remix VM for the initial contract test. If you need MetaMask to sign transactions, use a test network such as Sepolia and obtain test ETH from a legitimate Sepolia faucet.
+1.	Open MetaMask.
+2.	Enable test networks in its network settings, if necessary.
+3.	Select Sepolia.
+4.	Copy your wallet address using the account address at the top.
+Do not send real ETH or use Ethereum Mainnet for this exercise.
+
+Step 9: Deploy using Remix
+1.	Return to Remix.
+2.	Open Deploy & Run Transactions.
+3.	Confirm Injected Provider - MetaMask is selected.
+4.	Confirm the selected network is Sepolia.
+5.	Select SimpleStorage.
+6.	Click Deploy.
+7.	MetaMask will open a transaction confirmation.
+8.	Review the network and gas fee, then confirm using test ETH.
+After successful deployment, Remix displays the deployed contract under Deployed Contracts.
+
+Step 10: Test the contract in Remix
+Expand the deployed SimpleStorage contract.
+You will see two functions:
+•	set (orange/pink transaction button)
+•	get (blue read button)
+Test them:
+1.	Enter 100 in the set input.
+2.	Click set.
+3.	Confirm the MetaMask transaction.
+4.	Wait for the transaction to complete.
+5.	Click get.
+Expected output:
+100
+Try 200 in set and click get again. It should return 200.
+
+Step 11: Copy the contract address and ABI
+You need both to connect your website to the contract.
+Contract address:
+1.	Find the deployed contract in Remix.
+2.	Copy its address.
+ABI:
+1.	Open the Solidity Compiler tab.
+2.	Find the ABI option in the compilation details.
+3.	Click the copy icon.
+4.	Keep the ABI ready for the frontend.
+
+Part 4: Create the DApp frontend in VS Code
+
+Step 12: Create the project folder
+1.	Open VS Code.
+2.	Select File → Open Folder.
+3.	Create a folder named:
+simple-storage-dapp
+4. Inside the folder, create a file named:
+index.html
+Your folder should look like this:
+simple-storage-dapp/
+│
+└── index.html
+
+Step 13: Add the frontend code
+Paste this complete code into index.html.
+Replace PASTE_YOUR_CONTRACT_ADDRESS_HERE with the deployed contract address from Remix.
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Storage DApp</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #0002;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 12px 18px;
+            margin: 8px;
+            border: none;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 15px;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Simple Storage DApp</h2>
+
+    <button onclick="connectWallet()">Connect MetaMask</button>
+
+    <p id="account">Wallet not connected</p>
+
+    <hr>
+
+    <input
+        type="number"
+        id="numberInput"
+        placeholder="Enter a number"
+    >
+
+    <br>
+
+    <button onclick="setValue()">Set Value</button>
+
+    <button onclick="getValue()">Get Value</button>
+
+    <h3>Stored Value: <span id="storedValue">-</span></h3>
+
+    <p id="status"></p>
+
+</div>
+
+<script>
+
+const contractAddress = "PASTE_YOUR_CONTRACT_ADDRESS_HERE";
+
+const contractABI = [
+    "function set(uint256 x) public",
+    "function get() public view returns (uint256)"
+];
+
+let provider;
+let signer;
+let contract;
+
+async function connectWallet() {
+
+    if (!window.ethereum) {
+        document.getElementById("status").innerText =
+            "Please install MetaMask.";
+        return;
+    }
+
+    try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+
+        await provider.send("eth_requestAccounts", []);
+
+        signer = await provider.getSigner();
+
+        const address = await signer.getAddress();
+
+        document.getElementById("account").innerText =
+            "Connected: " + address;
+
+        contract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            signer
+        );
+
+        document.getElementById("status").innerText =
+            "Wallet connected successfully.";
+
+    } catch (error) {
+        document.getElementById("status").innerText =
+            error.message;
+    }
+}
+
+async function setValue() {
+
+    try {
+        if (!contract) {
+            throw new Error("Connect MetaMask first.");
+        }
+
+        const value = document.getElementById("numberInput").value;
+
+        if (value === "" || Number(value) < 0) {
+            throw new Error("Enter a valid number.");
+        }
+
+        document.getElementById("status").innerText =
+            "Waiting for transaction...";
+
+        const tx = await contract.set(value);
+
+        await tx.wait();
+
+        document.getElementById("status").innerText =
+            "Value stored successfully.";
+
+    } catch (error) {
+        document.getElementById("status").innerText =
+            error.shortMessage || error.message;
+    }
+}
+
+async function getValue() {
+
+    try {
+        if (!contract) {
+            throw new Error("Connect MetaMask first.");
+        }
+
+        const value = await contract.get();
+
+        document.getElementById("storedValue").innerText =
+            value.toString();
+
+        document.getElementById("status").innerText =
+            "Value retrieved successfully.";
+
+    } catch (error) {
+        document.getElementById("status").innerText =
+            error.shortMessage || error.message;
+    }
+}
+
+</script>
+
+</body>
+</html>
+
+
+
+Step 14: Add your contract address
+Find this line:
+const contractAddress = "PASTE_YOUR_CONTRACT_ADDRESS_HERE";
+Replace it with the actual deployed contract address.
+For example, the format looks like:
+const contractAddress = "0x1234567890abcdef1234567890abcdef12345678";
+The example address is only illustrative. Use your own Remix deployment address.
+
+Step 15: Install Live Server
+1.	Open VS Code.
+2.	Press Ctrl + Shift + X.
+3.	Search for Live Server.
+4.	Select the extension by Ritwick Dey.
+5.	Click Install.
+
+Step 16: Run the DApp
+1.	Open index.html.
+2.	Right-click inside the file.
+3.	Select Open with Live Server.
+4.	Your browser will open the application.
+The address will usually look like:
+http://127.0.0.1:5500/index.html
+Do not double-click the HTML file to run it. Use Live Server.
+
+Part 5: Test your DApp
+
+Step 17: Connect MetaMask
+1.	Click Connect MetaMask.
+2.	MetaMask will ask for permission.
+3.	Select your account.
+4.	Click Connect.
+Your wallet address should appear on the webpage.
+
+Step 18: Store a value
+1.	Enter 100 in the input field.
+2.	Click Set Value.
+3.	MetaMask will open.
+4.	Confirm the transaction using test ETH.
+5.	Wait for transaction confirmation.
+Expected message:
+Value stored successfully.
+
+
+Step 19: Retrieve the value
+1.	Click Get Value.
+2.	The webpage will call the smart contract's get() function.
+Expected output:
+Stored Value
+100
+Successfully retrieved
+Try storing 200 and retrieving it again. The output should change to 200.
+
+
