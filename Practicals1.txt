@@ -503,4 +503,426 @@ Test 4: Reset Stopwatch
 
 ------------------------------------------------------------------------------------------------------------
 
+Full Stack Practical 5: HTTP Calls Using REST API
 
+Step 1: Create a project folder
+1.	Open VS Code.
+2.	Create a new folder named Practical5.
+3.	Open that folder in VS Code.
+
+Step 2: Create an HTML file
+Create one file:
+index.html
+Your folder structure:
+
+Practical5
+index.html
+
+Step 3: Write the complete code
+Open index.html and paste this code:
+
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+<head>
+    <title>HTTP GET</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+
+<body ng-controller="myCtrl">
+
+    <h2>Get Data Using REST API</h2>
+
+    <button ng-click="getData()">Get Data</button>
+
+    <p>{{message}}</p>
+
+    <ul>
+        <li ng-repeat="user in users">
+            {{user.name}}
+        </li>
+    </ul>
+
+    <script>
+
+        var app = angular.module("myApp", []);
+
+        app.controller("myCtrl", function($scope, $http) {
+
+            $scope.getData = function() {
+
+                $http.get("https://jsonplaceholder.typicode.com/users")
+
+                .then(function(response) {
+
+                    $scope.users = response.data;
+
+                    $scope.message = "Data loaded successfully";
+
+                });
+
+            };
+
+        });
+
+    </script>
+
+</body>
+</html>
+
+Step 4: Run the practical
+1.	Right-click on index.html.
+2.	Select Open with Live Server.
+3.	Your browser will open.
+4.	You should see the heading:
+Get Data Using REST API
+
+5.	Click the Get Data button.
+Important: Internet connection is required to access the REST API and AngularJS CDN.
+
+--------------------------------------------------------------------------------------------------------
+
+
+Full Stack Practical 6: Posting Data to HTTP
+
+Step 1: Create a project folder
+1.	Open VS Code.
+2.	Create a new folder named Practical6.
+3.	Open the folder in VS Code.
+
+Step 2: Create an HTML file
+Create one file inside the folder:
+index.html
+Your folder structure should look like this:
+Practical6
+index.html
+
+Step 3: Write the complete code
+Open index.html and paste this code from your practical file:
+
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+<head>
+    <title>HTTP POST</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+
+<body ng-controller="myCtrl">
+
+    <h2>Submit User Data</h2>
+
+    <input type="text"
+           ng-model="name"
+           placeholder="Enter name">
+
+    <button ng-click="submitData()">Submit</button>
+
+    <p>{{message}}</p>
+
+    <script>
+
+        var app = angular.module("myApp", []);
+
+        app.controller("myCtrl", function($scope, $http) {
+
+            $scope.submitData = function() {
+
+                $http.post(
+                    "https://jsonplaceholder.typicode.com/posts",
+                    {name: $scope.name}
+                ).then(function(response) {
+
+                    $scope.message = "Data posted successfully!";
+
+                });
+
+            };
+
+        });
+
+    </script>
+
+</body>
+</html>
+
+Step 4 : Run the practical
+1.	Right-click on index.html.
+2.	Select Open with Live Server.
+3.	Your browser will open automatically.
+4.	You should see the Submit User Data heading.
+Internet connection is required for the AngularJS library and REST API.
+
+Step 5: Check the output
+Initially, your webpage should look similar to this:
+Now perform the following:
+1.	Click inside the text box.
+2.	Enter your name, for example Vijaya.
+3.	Click the Submit button.
+4.	Wait for the server response.
+
+Expected output:
+Submit User Data
+Vijaya
+Data posted successfully!
+
+------------------------------------------------------------------------------------------------------------------
+
+Full Stack Practical 7: Conditional Rendering, List Rendering and Form Handling in React
+
+
+Step 1: Check Node.js installation
+Open VS Code and open the terminal:
+Terminal → New Terminal
+Execute:
+node -v
+Then execute:
+npm -v
+Both commands should display version numbers.
+If they do, continue to the next step.
+
+Step 2: Create a React project using Vite
+In the VS Code terminal, execute:
+npm create vite@latest Practical7 -- --template react
+Wait until the project is created.
+Now enter the project folder:
+cd Practical7
+Install the required dependencies:
+npm install
+Wait until the installation finishes.
+
+Step 3: Open the project in VS Code
+Your project structure should look like this:
+Practical7
+index.html
+package.json
+node_modules
+src
+App.jsx
+main.jsx
+index.css
+Important: The Vite project automatically creates these files. You do not need to create them manually.
+
+Step 4: Open and edit App.jsx
+Inside the src folder, open:
+App.jsx
+Delete the existing code and paste the following code from your practical file:
+import { useState } from 'react';
+
+function App() {
+
+    const [name, setName] = useState('');
+    const [show, setShow] = useState(false);
+
+    const students = ['Vijaya', 'Sakshi', 'Shubhangi'];
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        setShow(true);
+    }
+
+    return (
+        <div>
+
+            <h2>Student Form</h2>
+
+            <form onSubmit={handleSubmit}>
+
+                <input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                />
+
+                <button type="submit">Submit</button>
+
+            </form>
+
+            {show && <h3>Welcome, {name}!</h3>}
+
+            <h3>Student List</h3>
+
+            <ul>
+                {students.map((student, index) => (
+                    <li key={index}>{student}</li>
+                ))}
+            </ul>
+
+        </div>
+    );
+}
+
+export default App;
+Save the file using Ctrl + S.
+
+Step 5: Check main.jsx
+Inside the same src folder, open:
+main.jsx
+Replace its contents with:
+
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.jsx';
+
+createRoot(document.getElementById('root')).render(
+    <StrictMode>
+        <App />
+    </StrictMode>
+);
+Save the file.
+Note: You do not need to change index.css for this practical.
+
+Step 6: Run the React project
+Go to your VS Code terminal.
+Make sure you are inside the Practical7 folder.
+Execute:
+npm run dev
+You should see output similar to:
+VITE ready
+
+Local: http://localhost:5173/
+
+Step 7: Open the project in your browser
+1.	Hold Ctrl and click the local URL in the terminal.
+2.	Alternatively, copy this address into Chrome:
+http://localhost:5173/
+Your React application should now open.
+
+Step 8: Check the expected output
+Your webpage should display something similar to this:
+Student Form
+ 
+Submit
+Student List
+•	Vijaya
+•	Sakshi
+•	Shubhangi
+Illustration of the expected React output.
+
+Step 9: Test all three functionalities
+
+Test 1: Form Handling
+1.	Enter your name in the input box.
+2.	Click Submit.
+3.	The form should submit without refreshing the page.
+
+Test 2: Conditional Rendering
+After submitting your name, you should see:
+Welcome, Vijaya!
+If you enter Rahul, it should display:
+Welcome, Rahul!
+
+Test 3: List Rendering
+You should see three students:
+•	Vijaya
+•	Sakshi
+•	Shubhangi
+
+---------------------------------------------------------------------------------------------------------------------
+
+Full Stack Practical 8: HTTP Calls in React
+
+Step 1: Reuse your Practical 7 project
+You do not need to create a new React project.
+1.	Open VS Code.
+2.	Open your existing Practical7 folder.
+3.	Open the src folder.
+4.	Find App.jsx.
+Your project structure should look like this:
+Practical7
+src
+App.jsx <- Edit this
+
+main.jsx
+index.css
+Important: According to your practical file, only replace the App.jsx code. Keep main.jsx unchanged.
+
+Step 2: Replace the App.jsx code
+Open src/App.jsx.
+Delete the previous Practical 7 code and paste this complete code:
+
+import { useState, useEffect } from 'react';
+
+function App() {
+
+    const [users, setUsers] = useState([]);
+
+    useEffect(() => {
+
+        fetch('https://jsonplaceholder.typicode.com/users')
+
+            .then(response => response.json())
+
+            .then(data => setUsers(data))
+
+            .catch(error => console.log(error));
+
+    }, []);
+
+    return (
+
+        <div>
+
+            <h2>User Details</h2>
+
+            {users.length === 0 && <p>Loading...</p>}
+
+            <ul>
+
+                {users.map(user => (
+
+                    <li key={user.id}>
+                        {user.name} - {user.email}
+                    </li>
+
+                ))}
+
+            </ul>
+
+        </div>
+
+    );
+
+}
+
+export default App;
+Save the file using Ctrl + S.
+
+Step 3: Run the React project
+Open the VS Code terminal.
+Make sure you are inside the Practical7 folder.
+Execute:
+npm run dev
+You should see:
+VITE ready
+
+Local: http://localhost:5173/
+
+Step 4: Open the application
+1.	Open Chrome.
+2.	Visit:
+http://localhost:5173/
+3.	Your React application will open.
+4.	Initially, you may see Loading...
+5.	After the API responds, the user details will appear.
+
+Step 5: Check the expected output
+Your webpage should display something similar to this:
+User Details
+Data loaded
+Leanne Graham
+Sincere@april.biz
+Ervin Howell
+Shanna@melissa.tv
+Clementine Bauch
+Nathan@yesenia.net
+Patricia Lebsack
+Julianne.OConner@kory.org
+Chelsey Dietrich
+Lucio_Hettinger@annie.ca
+Sample of the user details returned by the API. The actual practical displays 10 users.
